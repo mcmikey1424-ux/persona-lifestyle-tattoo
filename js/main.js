@@ -94,7 +94,12 @@ introTl
   .fromTo(
     ".hero__word .hl",
     { yPercent: 105, opacity: 0, filter: "blur(10px)" },
-    { yPercent: 0, opacity: 1, filter: "blur(0px)", duration: 1.05, stagger: 0.07, ease: "power4.out" },
+    {
+      yPercent: 0, opacity: 1, filter: "blur(0px)", duration: 1.05, stagger: 0.07, ease: "power4.out",
+      /* drop the filter layers afterwards so the scaling wordmark
+         rasterizes as one clean surface (prevents shimmer/flicker) */
+      onComplete: () => gsap.set(".hero__word .hl", { clearProps: "filter,willChange" }),
+    },
     "-=0.45"
   )
   /* tagline: per-word masked rise + blur */
@@ -125,24 +130,23 @@ gsap.timeline({
   scrollTrigger: {
     trigger: "#hero",
     start: "top top",
-    end: "60% top",
-    scrub: 0.4,
+    end: "72% top",
+    scrub: 0.7,
     invalidateOnRefresh: true,
   },
 })
-  .to(heroWord, { scale: () => heroScale(), top: 20, ease: "none" }, 0)
+  .to(heroWord, { scale: () => heroScale(), top: 20, ease: "power1.inOut", force3D: true }, 0)
   .to("#heroTagline", { scale: 0.6, opacity: 0, yPercent: -40, ease: "none" }, 0)
   .to("#heroHint", { opacity: 0, ease: "none", duration: 0.25 }, 0)
   .to("#heroMono", { opacity: 0, yPercent: -60, ease: "none" }, 0);
 
-/* Nav appears once the morph completes; the fixed hero word crossfades
-   into the clickable nav logo */
+/* Nav links appear once the morph completes. The fixed morphing wordmark
+   itself stays as the permanent logo (no swap — no end-of-shrink flicker);
+   the invisible #navLogo only serves as the size/position target. */
 ScrollTrigger.create({
   trigger: "#hero",
-  start: "62% top",
+  start: "74% top",
   onEnter: () => {
-    gsap.to(heroWord, { autoAlpha: 0, duration: 0.25 });
-    gsap.to("#navLogo", { opacity: 1, duration: 0.4 });
     gsap.to(".nav__link", {
       opacity: 1,
       filter: "blur(0px)",
@@ -151,8 +155,6 @@ ScrollTrigger.create({
     });
   },
   onLeaveBack: () => {
-    gsap.to(heroWord, { autoAlpha: 1, duration: 0.25 });
-    gsap.to("#navLogo", { opacity: 0, duration: 0.3 });
     gsap.to(".nav__link", { opacity: 0, filter: "blur(6px)", duration: 0.3 });
   },
 });

@@ -75,8 +75,9 @@ body.body--green { background-color: var(--green); }
   pointer-events: none;
 }
 .nav__logo {
+  /* invisible measuring target for the morphing wordmark */
   font-size: 20px; letter-spacing: 0.22em; font-weight: 400;
-  opacity: 0; pointer-events: auto;
+  visibility: hidden; pointer-events: none;
 }
 .nav__links { display: flex; gap: clamp(16px, 3vw, 44px); }
 .nav__link {
