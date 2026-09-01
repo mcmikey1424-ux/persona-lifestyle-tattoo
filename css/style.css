@@ -276,7 +276,6 @@ body.body--green { background-color: var(--green); }
   font-size: 8px; vertical-align: middle;
   margin-right: 12px; color: var(--mut);
 }
-.work__title .w { display: inline-block; will-change: transform; }
 .work__desc { max-width: 520px; text-transform: uppercase; }
 
 /* ============ PHILOSOPHY ============ */

@@ -508,7 +508,9 @@ DEPTH_LAYERS.forEach(([sel, dist]) => {
 /* ---------- Anchor navigation through Lenis ---------- */
 document.querySelectorAll('a[href^="#"]').forEach((a) => {
   a.addEventListener("click", (e) => {
-    const target = document.querySelector(a.getAttribute("href"));
+    const href = a.getAttribute("href");
+    if (href.length < 2) { e.preventDefault(); return; } /* bare "#" placeholder links */
+    const target = document.querySelector(href);
     if (!target) return;
     e.preventDefault();
     if (lenis) lenis.scrollTo(target, { offset: 0, duration: 1.4 });
