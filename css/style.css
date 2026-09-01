@@ -182,7 +182,7 @@ body.body--green { background-color: var(--green); }
 .mosaic__tiles { position: absolute; inset: 0; }
 .tile {
   position: absolute;
-  background-image: url("../assets/work-irezumi.jpg");
+  background-image: url("https://cdn.jsdelivr.net/gh/mcmikey1424-ux/persona-lifestyle-tattoo@master/assets/work-irezumi.jpg");
   background-repeat: no-repeat;
   will-change: transform, filter, opacity;
 }
