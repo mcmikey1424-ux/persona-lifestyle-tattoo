@@ -78,11 +78,11 @@ body.body--green { background-color: var(--green); }
 /* splash wordmark: scale the monogram to the caps' cap-height and sit
    it on the baseline so it aligns with the letters */
 .preloader__word .logo-o {
-  /* same proportions as the hero wordmark: 0.86em mark centered on the
-     ~0.70em cap zone (equal overshoot above and below) */
-  height: 0.86em; width: 0.95em;
-  vertical-align: -0.08em;
+  /* splash shows the monogram alone, scaled up */
+  height: 1em; width: 1.106em;
+  vertical-align: middle;
 }
+.preloader__word--logo { font-size: clamp(64px, 9vw, 110px); letter-spacing: 0; line-height: 1; }
 .preloader__bar {
   width: min(280px, 60vw); height: 1px;
   background: var(--line); overflow: hidden;
