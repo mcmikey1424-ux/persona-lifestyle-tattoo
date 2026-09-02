@@ -862,10 +862,10 @@ motionTl
   gsap.fromTo(tunnelEnter, { s: 0 },
     { s: 1, ease: "none", immediateRender: true,
       scrollTrigger: { trigger: "#tunnel", start: "top bottom-=25%", end: "top 25%", scrub: 0.4 } });
-  /* the entrance IS the zoom: big scale travel, alpha snaps in early
-     so it never reads as a fade */
-  gsap.fromTo("#tunnelViewport", { scale: 0.42, transformOrigin: "50% 50%" },
-    { scale: 1.08, ease: "power1.in", immediateRender: true, force3D: true,
+  /* zoom from EMPTY to full: starts at a point and blooms out fast
+     through the small sizes (power2.out), landing at 1.08 */
+  gsap.fromTo("#tunnelViewport", { scale: 0.02, transformOrigin: "50% 50%" },
+    { scale: 1.08, ease: "power2.out", immediateRender: true, force3D: true,
       scrollTrigger: { trigger: "#tunnel", start: "top bottom-=25%", end: "top 25%", scrub: 0.4 } });
   /* alpha tracks the whole zoom with an ease-in: near-invisible while
      the frozen frame is small (it reads boxy), fully there once it
@@ -876,10 +876,10 @@ motionTl
     onLeaveBack: () => gsap.set("#tunnelViewport", { visibility: "hidden" }),
     onEnter: () => gsap.set("#tunnelViewport", { visibility: "inherit" }),
   });
-  /* alpha completes within the first quarter of the entrance */
+  /* alpha completes almost immediately - the growth carries the show */
   gsap.fromTo("#tunnelViewport", { autoAlpha: 0 },
     { autoAlpha: 1, ease: "power1.out", immediateRender: true,
-      scrollTrigger: { trigger: "#tunnel", start: "top bottom-=25%", end: "top bottom-=45%", scrub: 0.3 } });
+      scrollTrigger: { trigger: "#tunnel", start: "top bottom-=25%", end: "top bottom-=37%", scrub: 0.3 } });
 
   gsap.fromTo("#tunnelViewport",
     { yPercent: 0 },
