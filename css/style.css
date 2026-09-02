@@ -53,14 +53,14 @@ img { max-width: 100%; display: block; }
    both locally and from the CDN) */
 .logo-o {
   display: inline-block;
-  width: 0.94em; height: 0.86em;
+  width: 0.89em; height: 0.86em;
   vertical-align: -0.02em;
   background: var(--red);
   -webkit-mask: url("../assets/logo-o.png") center / contain no-repeat;
   mask: url("../assets/logo-o.png") center / contain no-repeat;
 }
 .hl.hl--logo { display: flex; align-items: center; height: 1em; }
-.hl--logo .logo-o { width: 0.94em; height: 0.86em; }
+.hl--logo .logo-o { width: 0.89em; height: 0.86em; }
 body.body--green { background-color: var(--green); }
 
 /* ============ PRELOADER ============ */
