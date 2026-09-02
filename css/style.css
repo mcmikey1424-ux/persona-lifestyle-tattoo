@@ -214,7 +214,7 @@ body.body--green { background-color: var(--green); }
 /* ============ TYPOGRAPHY ORBIT (hero) ============ */
 .orbit {
   /* exact reference values: perspective 1000, tilt -9/5/-26, R=330px */
-  --orbR: 330px;
+  --orbR: 330px; /* fixed, exactly like the reference */
   position: absolute; inset: 0;
   perspective: 1000px;
   pointer-events: none;
@@ -226,12 +226,12 @@ body.body--green { background-color: var(--green); }
 }
 .orbit__img {
   position: absolute; left: 50%; bottom: 0;
-  height: 78vh; width: auto;
+  height: 96vh; width: auto;
   transform: translateX(-50%) translateZ(0);
   user-select: none;
 }
 .orbit__tilt {
-  position: absolute; left: 50%; top: 62%;
+  position: absolute; left: 50%; top: 50%;
   width: 0; height: 0;
   transform: translate(-45px, 42px) rotateX(-9deg) rotateY(5deg) rotateZ(-26deg);
   transform-style: preserve-3d;
@@ -250,9 +250,9 @@ body.body--green { background-color: var(--green); }
   backface-visibility: visible;
 }
 @media (max-width: 900px) {
-  .orbit { --orbR: 210px; }
-  .orbit__ch { font-size: 27px; letter-spacing: 4.6px; }
-  .orbit__img { height: 58vh; }
+  .orbit { --orbR: 34vw; }
+  .orbit__ch { font-size: calc(34vw * 0.1303); letter-spacing: 0.17em; }
+  .orbit__img { height: 72vh; }
 }
 
 /* ============ MOSAIC ============ */
