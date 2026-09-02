@@ -226,6 +226,22 @@ if (seenBefore) {
   introTl.seek(1.75); /* jump past the preloader beats */
 }
 
+/* side tags: center each under its corner letter (P / A), measured
+   from the real glyph boxes so both sides match exactly */
+function placeHeroTags() {
+  const masks = document.querySelectorAll("#heroWord .hl-mask");
+  if (masks.length < 2) return;
+  const first = masks[0].getBoundingClientRect();
+  const last = masks[masks.length - 1].getBoundingClientRect();
+  const l = document.querySelector(".hero__tag--l");
+  const r = document.querySelector(".hero__tag--r");
+  if (l) l.style.left = (first.left + first.width / 2) + "px";
+  if (r) r.style.left = (last.left + last.width / 2) + "px";
+}
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(placeHeroTags);
+window.addEventListener("load", placeHeroTags);
+window.addEventListener("resize", placeHeroTags);
+
 /* ---------- Hero shrink into nav ---------- */
 const heroWord = document.getElementById("heroWord");
 const navLogo = document.getElementById("navLogo");

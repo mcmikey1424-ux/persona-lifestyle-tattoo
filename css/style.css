@@ -148,13 +148,11 @@ body.body--green { background-color: var(--green); }
   opacity: 0; /* intro reveals */
   z-index: 2;
 }
-.hero__tag--l { left: 5.5vw; }
-.hero__tag--r {
-  /* anchored by the same vw math as the heading (right: would miss by
-     the scrollbar width) */
-  left: 94.5vw;
-  transform: translateX(-100%);
-}
+/* each tag is CENTERED under its corner letter (P / A); exact left
+   values are measured from the glyphs by JS on load and resize */
+.hero__tag--l, .hero__tag--r { transform: translateX(-50%); }
+.hero__tag--l { left: 8vw; }
+.hero__tag--r { left: 92vw; }
 .hero__row {
   margin-top: auto;
   margin-bottom: 10vh;
