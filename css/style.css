@@ -9,7 +9,7 @@
   --red: #b0402e;
   --card: #e4dfd4;
   --card-ink: #191713;
-  --font-d: "Space Grotesk", "Segoe UI", sans-serif;
+  --font-d: "General Sans", "Space Grotesk", "Segoe UI", sans-serif; /* Fromzero body face */
   --font-m: "JetBrains Mono", Consolas, monospace;
   --pad: clamp(20px, 4vw, 64px);
 }
@@ -253,12 +253,13 @@ body.body--green { background-color: var(--green); }
   .orbit__img { height: 72vh; }
 }
 
-/* ============ CREATIVE-DIRECTOR SYSTEMS (GetLayers extract) ============ */
-/* dot-matrix display face on every major heading (reference: Bitcount Single) */
-.motion__row, .work__title, .service__title, .journal__title,
-.footer__word, .preloader__word {
-  font-family: "Bitcount Single", var(--font-d);
-  font-weight: 400;
+/* ============ GETLAYERS SYSTEMS ============ */
+/* Fromzero display face (Chakra Petch — logo + headlines) on every
+   major heading, hero wordmark included */
+.hero__word, .nav__logo, .motion__row, .work__title, .service__title,
+.journal__title, .footer__word, .preloader__word {
+  font-family: "Chakra Petch", var(--font-d);
+  font-weight: 500;
 }
 /* hero-style diagonal translucent gradient fill (reference .title-container h1) */
 .gl-grad {
