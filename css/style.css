@@ -194,6 +194,13 @@ body.body--green { background-color: var(--green); }
 }
 
 .hero__mono { max-width: 300px; }
+.hero__reel { display: flex; flex-direction: column; gap: 10px; align-items: flex-end; }
+.hero__reel video {
+  height: 30vh; width: auto;
+  display: block;
+  object-fit: cover;
+}
+.hero__reel-label { font-size: 10px; }
 
 /* ============ INK IN MOTION (crossing headings + arc carousel) ============ */
 .motion { position: relative; }

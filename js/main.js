@@ -212,11 +212,11 @@ introTl
   )
   /* side tags fade in */
   .to(".hero__tag", { opacity: 1, duration: 0.7, stagger: 0.1, ease: "power2.out" }, "-=0.6")
-  /* mono paragraph: masked line rise */
+  /* showreel: rise + fade in */
   .fromTo(
-    "#heroMono .line",
-    { yPercent: 110 },
-    { yPercent: 0, duration: 0.8, stagger: 0.08, ease: "power3.out" },
+    "#heroMono",
+    { y: 26, opacity: 0 },
+    { y: 0, opacity: 1, duration: 0.8, ease: "power3.out" },
     "-=0.6"
   )
   ;
