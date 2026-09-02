@@ -225,13 +225,13 @@ body.body--green { background-color: var(--green); }
   transform-style: preserve-3d;
 }
 .orbit__img {
-  position: absolute; left: 50%; top: 55%;
-  height: 72vh; width: auto;
-  transform: translate(-50%, -50%) translateZ(0);
+  position: absolute; left: 50%; bottom: 0;
+  height: 78vh; width: auto;
+  transform: translateX(-50%) translateZ(0);
   user-select: none;
 }
 .orbit__tilt {
-  position: absolute; left: 50%; top: 58%;
+  position: absolute; left: 50%; top: 62%;
   width: 0; height: 0;
   transform: translate(-45px, 42px) rotateX(-9deg) rotateY(5deg) rotateZ(-26deg);
   transform-style: preserve-3d;
