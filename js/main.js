@@ -229,14 +229,37 @@ if (seenBefore) {
   introTl.seek(1.75); /* jump past the preloader beats */
 }
 
-/* right tag alignment shift lives in GSAP's transform system so every
-   later tween composes with it instead of wiping it (a CSS transform
-   here gets clobbered by the scroll tweens = alignment drift) */
-gsap.set(".hero__tag--r", { xPercent: -100 });
-
 /* ---------- Hero shrink into nav ---------- */
 const heroWord = document.getElementById("heroWord");
 const navLogo = document.getElementById("navLogo");
+
+/* tags centered under the corner letters (P / A). The -50% centering
+   lives in GSAP xPercent so scroll tweens compose with it. Left values
+   come from the live glyph geometry, corrected for the morph scale so
+   the measurement is valid at ANY scroll position, and recomputed on
+   load / font-ready / resize. */
+gsap.set(".hero__tag--l, .hero__tag--r", { xPercent: -50 });
+function placeHeroTags() {
+  if (heroWord.classList.contains("glitching") || heroWord.textContent.replace(/\s/g, "") !== "PERSØNA") return;
+  const masks = heroWord.querySelectorAll(".hl-mask");
+  if (masks.length < 2) return;
+  const wordRect = heroWord.getBoundingClientRect();
+  const sc = wordRect.width / (0.89 * window.innerWidth) || 1; /* morph scale */
+  const baseLeft = 0.055 * window.innerWidth;                  /* unscaled heading left */
+  const center = (m) => {
+    const r = m.getBoundingClientRect();
+    return baseLeft + (r.left + r.width / 2 - wordRect.left) / sc;
+  };
+  const l = document.querySelector(".hero__tag--l");
+  const r = document.querySelector(".hero__tag--r");
+  if (l) l.style.left = center(masks[0]) + "px";
+  if (r) r.style.left = center(masks[masks.length - 1]) + "px";
+}
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(placeHeroTags);
+window.addEventListener("load", placeHeroTags);
+let tagResizeTimer;
+window.addEventListener("resize", () => { clearTimeout(tagResizeTimer); tagResizeTimer = setTimeout(placeHeroTags, 350); });
+placeHeroTags();
 
 function heroScale() {
   return navLogo.getBoundingClientRect().width / heroWord.getBoundingClientRect().width || 0.1;
