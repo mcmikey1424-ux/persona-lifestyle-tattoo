@@ -224,7 +224,7 @@ body.body--green { background-color: var(--green); }
 }
 .orbit__img {
   position: absolute; left: 50%; bottom: 0;
-  height: 80vh; width: auto; /* trimmed cutouts: head tops align at 20vh */
+  height: 92vh; width: auto; /* trimmed cutouts: head tops align at 8vh */
   transform: translateX(-50%) translateZ(0);
   user-select: none;
 }
@@ -251,7 +251,7 @@ body.body--green { background-color: var(--green); }
 @media (max-width: 900px) {
   .orbit { --orbR: 34vw; }
   .orbit__ch { font-size: calc(34vw * 0.1303); letter-spacing: 0.17em; }
-  .orbit__img { height: 66vh; }
+  .orbit__img { height: 74vh; }
 }
 
 /* ============ GETLAYERS SYSTEMS ============ */
