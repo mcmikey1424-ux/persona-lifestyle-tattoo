@@ -6,7 +6,10 @@ const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").match
 /* ---------- Lenis smooth scroll ---------- */
 let lenis = null;
 if (!reduceMotion) {
-  lenis = new Lenis({ lerp: 0.09, wheelMultiplier: 1 });
+  /* Trionn-matched feel (measured on their live site): scrollY steps
+     ~102px per wheel notch with near-native response; the polish comes
+     from scrubbed animations, not heavy scroll lag */
+  lenis = new Lenis({ lerp: 0.16, wheelMultiplier: 0.85 });
   lenis.on("scroll", ScrollTrigger.update);
   gsap.ticker.add((t) => lenis.raf(t * 1000));
   gsap.ticker.lagSmoothing(0);
