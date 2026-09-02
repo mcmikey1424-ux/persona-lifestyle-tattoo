@@ -1006,6 +1006,15 @@ motionTl
     { yPercent: 0 },
     { yPercent: -100, ease: "none", immediateRender: false,
       scrollTrigger: { trigger: "#tunnel", start: "bottom bottom", end: "bottom top", scrub: 0.5 } });
+  /* HARD GATE (established pattern): the fixed tunnel layer is forced
+     hidden the instant the section is scrolled past - scrub lag can
+     never leave its edge hanging over the next section */
+  ScrollTrigger.create({
+    trigger: "#tunnel",
+    start: "bottom top+=1",
+    onEnter: () => gsap.set("#tunnelViewport", { visibility: "hidden" }),
+    onLeaveBack: () => gsap.set("#tunnelViewport", { visibility: "inherit" }),
+  });
 })();
 
 /* ---------- Mosaic: scattered tiles assemble ---------- */
