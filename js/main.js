@@ -229,6 +229,11 @@ if (seenBefore) {
   introTl.seek(1.75); /* jump past the preloader beats */
 }
 
+/* right tag alignment shift lives in GSAP's transform system so every
+   later tween composes with it instead of wiping it (a CSS transform
+   here gets clobbered by the scroll tweens = alignment drift) */
+gsap.set(".hero__tag--r", { xPercent: -100 });
+
 /* ---------- Hero shrink into nav ---------- */
 const heroWord = document.getElementById("heroWord");
 const navLogo = document.getElementById("navLogo");
@@ -250,8 +255,8 @@ gsap.timeline({
   /* text blocks sweep OUT to their own sides on scroll (portrait untouched) */
   .to("#heroTagline", { x: () => -window.innerWidth * 0.6, opacity: 0, ease: "power1.in" }, 0)
   .to("#heroMono", { x: () => window.innerWidth * 0.6, opacity: 0, ease: "power1.in" }, 0)
-  .to(".hero__tag--l", { x: () => -window.innerWidth * 0.4, opacity: 0, ease: "power1.in" }, 0)
-  .to(".hero__tag--r", { x: () => window.innerWidth * 0.4, opacity: 0, ease: "power1.in" }, 0)
+  .fromTo(".hero__tag--l", { x: 0 }, { x: () => -window.innerWidth * 0.4, opacity: 0, ease: "power1.in", immediateRender: false }, 0)
+  .fromTo(".hero__tag--r", { x: 0 }, { x: () => window.innerWidth * 0.4, opacity: 0, ease: "power1.in", immediateRender: false }, 0)
   /* explicit from-value: with invalidateOnRefresh, a refresh mid-intro
      (orbit still hidden) would otherwise capture opacity 0 as the start
      and pin the orbit invisible */

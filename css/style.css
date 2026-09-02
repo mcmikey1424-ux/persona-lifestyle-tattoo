@@ -149,9 +149,12 @@ body.body--green { background-color: var(--green); }
   z-index: 2;
 }
 /* both tags inset EXACTLY 5.5vw from their screen edges - the same
-   gutters as the heading, identical spacing left and right */
+   gutters as the heading, identical spacing left and right.
+   NOTE: the right tag's -100% shift is applied via GSAP xPercent (in
+   main.js), NOT a CSS transform - GSAP tweens on these elements would
+   overwrite a CSS transform and change the alignment after scrolling. */
 .hero__tag--l { left: 5.5vw; }
-.hero__tag--r { left: 94.5vw; transform: translateX(-100%); }
+.hero__tag--r { left: 94.5vw; }
 .hero__row {
   margin-top: auto;
   margin-bottom: 10vh;
