@@ -211,23 +211,6 @@ body.body--green { background-color: var(--green); }
   transform: translate(-50%, -50%);
   text-align: center;
 }
-.motion__band {
-  /* full-stage mount for the card wheel (positions computed in JS) */
-  position: absolute; inset: 0;
-  perspective: 1400px;
-  transform-style: preserve-3d;
-  pointer-events: none;
-}
-.motion__band .motion__card { position: absolute; left: 0; top: 0; }
-.motion__gl {
-  /* the Three.js stage: the ribbon lives in real WebGL 3D */
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-}
-
 /* ============ MOSAIC ============ */
 .mosaic { position: relative; }
 .mosaic__stage {

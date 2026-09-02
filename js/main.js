@@ -261,150 +261,11 @@ heroWord.addEventListener("click", () => {
   else window.scrollTo({ top: 0, behavior: "smooth" });
 });
 
-/* ---------- Ink in Motion: crossing headings + arc carousel ----------
+/* ---------- Ink in Motion: crossing headings ----------
    Choreography (mirroring the reference, directions per spec):
    after the wordmark docks, row 1 rides in from the RIGHT, row 2 from
-   the LEFT; they cross mid-section and exit the opposite sides while a
-   curved band of work shots sweeps up from the bottom, over the
-   headings, and away off the top. Fully scrubbed and reversible. */
-const motionBand = document.getElementById("motionBand");
-/* THE 3D RIBBON RAIL (Trionn): a continuous strip of shots conveyed
-   along one S-track that curves IN DEPTH - the middle of the strip
-   swings close to the camera (cards huge, twisted toward you), both
-   ends recede far away and turn edge-on. Cards flow along the rail
-   with scroll; fully scrubbed and reversible. */
-/* THE WEBGL RIBBON (Three.js) - the same rendering model as the
-   reference: a real 3D curve in space, a perspective camera, and the
-   studio's shots as textured planes riding the curve. The strip flows
-   along the rail with scroll; near the camera it is huge with true
-   perspective, and it twists away at both ends. */
-const SHOT_IMGS = ["work-irezumi", "work-blackwork", "work-realism", "work-neotrad"];
-const glCanvas = document.createElement("canvas");
-glCanvas.className = "motion__gl";
-motionBand.appendChild(glCanvas);
-
-const glRenderer = new THREE.WebGLRenderer({ canvas: glCanvas, alpha: true, antialias: true });
-const glScene = new THREE.Scene();
-const glCamera = new THREE.PerspectiveCamera(40, 1, 0.1, 100);
-glCamera.position.set(0, 0, 10);
-
-function glSize() {
-  const w = motionBand.clientWidth || window.innerWidth;
-  const h = motionBand.clientHeight || window.innerHeight;
-  glRenderer.setSize(w, h, false);
-  glRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-  glCamera.aspect = w / h;
-  glCamera.updateProjectionMatrix();
-}
-
-/* the rail in world space: in from the top-right far away, swinging
-   close past the camera mid-strip, curling away bottom-left */
-const ribbonCurve = new THREE.CatmullRomCurve3([
-  new THREE.Vector3(26.0, -7.5, -8.0),
-  new THREE.Vector3(16.0, -4.5, -4.5),
-  new THREE.Vector3(8.0, -2.2, -1.5),
-  new THREE.Vector3(0.5, 0.2, 1.2),
-  new THREE.Vector3(-7.0, 2.4, -0.6),
-  new THREE.Vector3(-15.0, 4.8, -3.6),
-  new THREE.Vector3(-24.0, 7.5, -7.5),
-]);
-
-/* THE RIDE (from the reference video, phase by phase):
-   A) a small upward-bowed arc rises from BELOW, far away
-   B) it surges up toward the camera into a huge flat diagonal band
-   C) it passes overhead into a high rainbow arc, receding into depth
-   D) the strip breaks apart and six shots settle into a flat 2x3 grid.
-   The rail morphs between keyframes A->B->C while cards drift along
-   it; in the final phase six cards blend off the rail into the grid. */
-const RAIL_A = [[11, -7.5, -9], [6, -5.8, -8], [3, -5.0, -7.2], [0, -4.7, -7], [-3, -5.0, -7.4], [-6, -6.0, -8.4], [-10, -8.2, -9.5]];
-const RAIL_B = [[24, -5, -7], [15, -2.8, -3.5], [7.5, -1.2, -0.8], [0.5, 0.4, 1.4], [-6.5, 1.6, 0.4], [-11.5, 0.2, 1.6], [-15, -3.4, 0.2]];
-const RAIL_C = [[12, 2.6, -7.5], [7, 4.4, -6], [3.5, 5.6, -5.4], [0, 6, -5.2], [-3.5, 5.4, -5.6], [-7, 3.8, -6.4], [-11, 0.8, -7.5]];
-
-function lerpRail(src, dst, u) {
-  u = u * u * (3 - 2 * u);
-  ribbonCurve.points.forEach((pt, i) => {
-    pt.set(
-      src[i][0] + (dst[i][0] - src[i][0]) * u,
-      src[i][1] + (dst[i][1] - src[i][1]) * u,
-      src[i][2] + (dst[i][2] - src[i][2]) * u
-    );
-  });
-  ribbonCurve.updateArcLengths();
-}
-
-function morphRail(m) {
-  if (m < 0.33) lerpRail(RAIL_A, RAIL_B, m / 0.33);
-  else if (m < 0.62) lerpRail(RAIL_B, RAIL_C, (m - 0.33) / 0.29);
-  else lerpRail(RAIL_C, RAIL_C, 1);
-}
-
-const texLoader = new THREE.TextureLoader();
-texLoader.crossOrigin = "anonymous";
-const ribbonMeshes = [];
-const planeGeo = new THREE.PlaneGeometry(4.5, 2.8);
-for (let k = 0; k < 14; k++) {
-  const tex = texLoader.load(
-    `https://cdn.jsdelivr.net/gh/mcmikey1424-ux/persona-lifestyle-tattoo@master/assets/${SHOT_IMGS[k % SHOT_IMGS.length]}.jpg`,
-    () => placeRibbon()
-  );
-  tex.colorSpace = THREE.SRGBColorSpace;
-  const mesh = new THREE.Mesh(
-    planeGeo,
-    new THREE.MeshBasicMaterial({ map: tex, side: THREE.DoubleSide, depthWrite: false })
-  );
-  mesh.renderOrder = k; /* shingled deck: later cards draw on top */
-  mesh.visible = false;
-  glScene.add(mesh);
-  ribbonMeshes.push(mesh);
-}
-
-/* meshes 2..7 settle into the final 2x3 grid; the rest run off the rail */
-const GRID_OF = { 4: 0, 5: 1, 6: 2, 7: 3, 8: 4, 9: 5 };
-function gridTarget(g) {
-  return new THREE.Vector3(((g % 3) - 1) * 4.9, g < 3 ? 1.75 : -1.55, -1);
-}
-const IDENTITY_Q = new THREE.Quaternion();
-const tmpQ = new THREE.Quaternion();
-const tmpV = new THREE.Vector3();
-
-const ribbonFlow = { flow: 0 };
-const railBasis = new THREE.Matrix4();
-const vTan = new THREE.Vector3(), vToCam = new THREE.Vector3(), vUp = new THREE.Vector3();
-
-function placeRibbon() {
-  const m = ribbonFlow.flow;
-  morphRail(m);
-  const gridE = m <= 0.62 ? 0 : Math.min(1, (m - 0.62) / 0.34);
-  const gridEase = gridE * gridE * (3 - 2 * gridE);
-  ribbonMeshes.forEach((mesh, i) => {
-    const lead = i / (ribbonMeshes.length - 1);
-    const g = GRID_OF[i];
-    /* shingled: tight spacing so neighbours overlap ~45% like a fanned deck */
-    let s = 0.5 + (0.5 - lead) * 0.68 + (Math.min(m, 0.62) / 0.62 - 0.5) * 0.42;
-    if (g === undefined && m > 0.62) s += (m - 0.62) * 2.8; /* non-grid cards run off */
-    if (s < 0.002 || s > 0.998) { mesh.visible = false; return; }
-    mesh.visible = true;
-    const pos = ribbonCurve.getPointAt(s);
-    vTan.copy(ribbonCurve.getTangentAt(s));
-    vToCam.copy(glCamera.position).sub(pos);
-    vToCam.addScaledVector(vTan, -vToCam.dot(vTan)).normalize();
-    vUp.crossVectors(vToCam, vTan).normalize();
-    railBasis.makeBasis(vTan, vUp, vToCam);
-    tmpQ.setFromRotationMatrix(railBasis);
-    if (g !== undefined && gridEase > 0) {
-      /* blend off the rail into the resting grid */
-      tmpV.copy(gridTarget(g));
-      pos.lerp(tmpV, gridEase);
-      tmpQ.slerp(IDENTITY_Q, gridEase);
-    }
-    mesh.position.copy(pos);
-    mesh.setRotationFromQuaternion(tmpQ);
-  });
-  glRenderer.render(glScene, glCamera);
-}
-glSize();
-placeRibbon();
-window.addEventListener("resize", () => { glSize(); placeRibbon(); });
+   the LEFT; they cross mid-section and exit the opposite sides.
+   Fully scrubbed and reversible. */
 
 const motionRow1 = document.getElementById("motionRow1");
 const motionRow2 = document.getElementById("motionRow2");
@@ -413,7 +274,7 @@ const motionTl = gsap.timeline({
   scrollTrigger: {
     trigger: "#motion",
     start: "top top",
-    end: "+=320%",
+    end: "+=160%",
     scrub: 0.8,
     pin: "#motionStage",
     anticipatePin: 1,
@@ -437,14 +298,6 @@ motionTl
   )
   ;
 
-/* THE FILM-STRIP RAIL: one continuous S-curved track feeding through
-   the scene — in from the top-right, snaking down across the middle,
-   and the leading end CURLS hard in 3D at the bottom-left (the ribbon
-   twisting away like unwinding film). Cards are conveyed ALONG the
-   rail as you scroll — a continuous strip flowing through, scrubbed
-   and fully reversible. */
-/* the ride: the strip flows along the 3D rail */
-motionTl.to(ribbonFlow, { flow: 1, ease: "none", duration: 7.4, onUpdate: placeRibbon }, 2.2);
 
 /* ---------- Mosaic: scattered tiles assemble ---------- */
 const tilesWrap = document.getElementById("mosaicTiles");
