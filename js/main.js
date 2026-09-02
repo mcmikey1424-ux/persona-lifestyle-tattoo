@@ -309,19 +309,19 @@ const ribbonCurve = new THREE.CatmullRomCurve3([
   new THREE.Vector3(-24.0, 7.5, -7.5),
 ]);
 
-/* THE SWIRL: the rail itself unrolls through the scroll - a tight
-   high curl far away unwinds into the big flat sweep, then re-curls
-   the other way and lifts off. Control points morph between three
-   keyframe rails as the scrub advances. */
-const RAIL_A = [[14, 8, -14], [8, 6.5, -9], [3.5, 5.2, -6.5], [0, 4.6, -6], [-3.5, 5, -7], [-8, 6.2, -10], [-13, 8, -14]];
-const RAIL_B = [[26, -7.5, -8], [16, -4.5, -4.5], [8, -2.2, -1.5], [0.5, 0.2, 1.2], [-7, 2.4, -0.6], [-15, 4.8, -3.6], [-24, 7.5, -7.5]];
-const RAIL_C = [[18, 6, -6], [10, 7.5, -4], [4, 9, -2.5], [-2, 10.5, -2], [-8, 12, -4], [-14, 14, -7], [-20, 16, -11]];
+/* THE RIDE (from the reference video, phase by phase):
+   A) a small upward-bowed arc rises from BELOW, far away
+   B) it surges up toward the camera into a huge flat diagonal band
+   C) it passes overhead into a high rainbow arc, receding into depth
+   D) the strip breaks apart and six shots settle into a flat 2x3 grid.
+   The rail morphs between keyframes A->B->C while cards drift along
+   it; in the final phase six cards blend off the rail into the grid. */
+const RAIL_A = [[10, -7, -9], [6, -5.6, -8], [3, -4.9, -7.2], [0, -4.6, -7], [-3, -4.9, -7.2], [-6, -5.6, -8], [-10, -7, -9]];
+const RAIL_B = [[24, -6, -6], [15, -3.6, -3], [7.5, -1.6, -0.5], [0.5, 0.4, 1.6], [-7, 2.2, 0], [-15, 4.2, -3], [-23, 6.5, -6.5]];
+const RAIL_C = [[11, 3.2, -7], [7, 4.6, -6], [3.5, 5.6, -5.4], [0, 6, -5.2], [-3.5, 5.6, -5.4], [-7, 4.6, -6], [-11, 3.2, -7]];
 
-function morphRail(m) {
-  let src, dst, u;
-  if (m < 0.5) { src = RAIL_A; dst = RAIL_B; u = m / 0.5; }
-  else { src = RAIL_B; dst = RAIL_C; u = (m - 0.5) / 0.5; }
-  u = u * u * (3 - 2 * u); /* smoothstep eases the unroll */
+function lerpRail(src, dst, u) {
+  u = u * u * (3 - 2 * u);
   ribbonCurve.points.forEach((pt, i) => {
     pt.set(
       src[i][0] + (dst[i][0] - src[i][0]) * u,
@@ -330,6 +330,12 @@ function morphRail(m) {
     );
   });
   ribbonCurve.updateArcLengths();
+}
+
+function morphRail(m) {
+  if (m < 0.33) lerpRail(RAIL_A, RAIL_B, m / 0.33);
+  else if (m < 0.62) lerpRail(RAIL_B, RAIL_C, (m - 0.33) / 0.29);
+  else lerpRail(RAIL_C, RAIL_C, 1);
 }
 
 const texLoader = new THREE.TextureLoader();
@@ -351,29 +357,46 @@ for (let k = 0; k < 10; k++) {
   ribbonMeshes.push(mesh);
 }
 
-const RIBBON_SPAN = 0.9;
+/* meshes 2..7 settle into the final 2x3 grid; the rest run off the rail */
+const GRID_OF = { 2: 0, 3: 1, 4: 2, 5: 3, 6: 4, 7: 5 };
+function gridTarget(g) {
+  return new THREE.Vector3(((g % 3) - 1) * 4.9, g < 3 ? 1.75 : -1.55, -1);
+}
+const IDENTITY_Q = new THREE.Quaternion();
+const tmpQ = new THREE.Quaternion();
+const tmpV = new THREE.Vector3();
+
 const ribbonFlow = { flow: 0 };
 const railBasis = new THREE.Matrix4();
 const vTan = new THREE.Vector3(), vToCam = new THREE.Vector3(), vUp = new THREE.Vector3();
 
 function placeRibbon() {
-  morphRail(ribbonFlow.flow);
+  const m = ribbonFlow.flow;
+  morphRail(m);
+  const gridE = m <= 0.62 ? 0 : Math.min(1, (m - 0.62) / 0.34);
+  const gridEase = gridE * gridE * (3 - 2 * gridE);
   ribbonMeshes.forEach((mesh, i) => {
     const lead = i / (ribbonMeshes.length - 1);
-    const s = ribbonFlow.flow * (1 + RIBBON_SPAN) - lead * RIBBON_SPAN;
+    const g = GRID_OF[i];
+    let s = 0.5 + (0.5 - lead) * 0.85 + (Math.min(m, 0.62) / 0.62 - 0.5) * 0.3;
+    if (g === undefined && m > 0.62) s += (m - 0.62) * 1.6; /* non-grid cards run off */
     if (s < 0.002 || s > 0.998) { mesh.visible = false; return; }
     mesh.visible = true;
     const pos = ribbonCurve.getPointAt(s);
-    mesh.position.copy(pos);
-    /* orient: width along the rail tangent, face turned toward the
-       camera (minus the tangent component) - the strip twists
-       naturally as the tangent bends through 3D */
     vTan.copy(ribbonCurve.getTangentAt(s));
     vToCam.copy(glCamera.position).sub(pos);
     vToCam.addScaledVector(vTan, -vToCam.dot(vTan)).normalize();
     vUp.crossVectors(vToCam, vTan).normalize();
     railBasis.makeBasis(vTan, vUp, vToCam);
-    mesh.setRotationFromMatrix(railBasis);
+    tmpQ.setFromRotationMatrix(railBasis);
+    if (g !== undefined && gridEase > 0) {
+      /* blend off the rail into the resting grid */
+      tmpV.copy(gridTarget(g));
+      pos.lerp(tmpV, gridEase);
+      tmpQ.slerp(IDENTITY_Q, gridEase);
+    }
+    mesh.position.copy(pos);
+    mesh.setRotationFromQuaternion(tmpQ);
   });
   glRenderer.render(glScene, glCamera);
 }
