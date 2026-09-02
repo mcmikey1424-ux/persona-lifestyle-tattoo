@@ -268,40 +268,71 @@ heroWord.addEventListener("click", () => {
    curved band of work shots sweeps up from the bottom, over the
    headings, and away off the top. Fully scrubbed and reversible. */
 const motionBand = document.getElementById("motionBand");
-/* THE SPIRAL DRUM: tiles wrapped around a vertical cylinder - several
-   tiles around x stacked rows, each row twisted so the seam spirals.
-   Scroll rotates the drum on its vertical axis while it travels up
-   through the pin (same construction as the reference gallery). */
-const DRUM_COLS = 8, DRUM_ROWS = 3, DRUM_TWIST = 16; /* deg of spiral per row */
-const DRUM_IMGS = ["work-irezumi", "work-blackwork", "work-realism", "work-neotrad"];
-const drum = document.createElement("div");
-drum.className = "motion__drum";
-motionBand.appendChild(drum);
-for (let r = 0; r < DRUM_ROWS; r++) {
-  for (let c = 0; c < DRUM_COLS; c++) {
-    const tile = document.createElement("div");
-    tile.className = "motion__tile3d";
-    tile.style.backgroundImage = `url(https://cdn.jsdelivr.net/gh/mcmikey1424-ux/persona-lifestyle-tattoo@master/assets/${DRUM_IMGS[(r * 3 + c) % DRUM_IMGS.length]}.jpg)`;
-    drum.appendChild(tile);
-  }
+/* THE 3D RIBBON RAIL (Trionn): a continuous strip of shots conveyed
+   along one S-track that curves IN DEPTH - the middle of the strip
+   swings close to the camera (cards huge, twisted toward you), both
+   ends recede far away and turn edge-on. Cards flow along the rail
+   with scroll; fully scrubbed and reversible. */
+const SHOT_IMGS = ["work-irezumi", "work-blackwork", "work-realism", "work-neotrad"];
+const ribbonCards = [];
+for (let k = 0; k < 12; k++) {
+  const d = document.createElement("div");
+  d.className = "motion__card";
+  d.style.backgroundImage = `url(https://cdn.jsdelivr.net/gh/mcmikey1424-ux/persona-lifestyle-tattoo@master/assets/${SHOT_IMGS[k % SHOT_IMGS.length]}.jpg)`;
+  motionBand.appendChild(d);
+  ribbonCards.push(d);
 }
 
-function sizeDrum() {
-  const tileW = Math.max(180, window.innerWidth * 0.165);
-  const tileH = tileW * 1.28;
-  const R = ((tileW / 2) / Math.tan(Math.PI / DRUM_COLS)) * 1.05;
-  [...drum.children].forEach((tile, idx) => {
-    const r = Math.floor(idx / DRUM_COLS), c = idx % DRUM_COLS;
-    const ang = c * (360 / DRUM_COLS) + r * DRUM_TWIST;
-    tile.style.width = tileW + "px";
-    tile.style.height = tileH + "px";
-    tile.style.transform =
-      `translate(-50%, -50%) translateY(${(r - (DRUM_ROWS - 1) / 2) * (tileH + 10)}px) ` +
-      `rotateY(${ang}deg) translateZ(${R}px)`;
+/* rail samples: x,y as viewport fractions; z px toward(+)/away(-) from
+   camera; rY = 3D twist. Middle of the rail is nearest the viewer. */
+const RIBBON_RAIL = [
+  { x: 1.34, y: -0.28, z: -720, rY: -58 },
+  { x: 1.04, y: 0.00, z: -430, rY: -36 },
+  { x: 0.74, y: 0.13, z: -150, rY: -16 },
+  { x: 0.46, y: 0.22, z: 170, rY: 10 },
+  { x: 0.20, y: 0.31, z: 340, rY: 34 },
+  { x: 0.02, y: 0.46, z: 150, rY: 58 },
+  { x: -0.12, y: 0.70, z: -160, rY: 78 },
+  { x: -0.27, y: 1.08, z: -470, rY: 88 },
+];
+
+function ribbonPoint(s) {
+  const W = window.innerWidth, H = window.innerHeight;
+  const n = RIBBON_RAIL.length - 1;
+  const f = Math.min(Math.max(s, 0), 1) * n;
+  const i = Math.min(Math.floor(f), n - 1);
+  const u = f - i;
+  const P = (idx) => RIBBON_RAIL[Math.min(Math.max(idx, 0), n)];
+  const cr = (a, b, c, d) =>
+    0.5 * (2 * b + (-a + c) * u + (2 * a - 5 * b + 4 * c - d) * u * u + (-a + 3 * b - 3 * c + d) * u * u * u);
+  const g = (key, scale) =>
+    cr(P(i - 1)[key], P(i)[key], P(i + 1)[key], P(i + 2)[key]) * scale;
+  return { x: g("x", W), y: g("y", H), z: g("z", 1), rY: g("rY", 1) };
+}
+
+const RIBBON_SPAN = 0.5; /* portion of rail the strip occupies */
+const ribbonFlow = { flow: 0 };
+
+function renderRibbon() {
+  ribbonCards.forEach((card, i) => {
+    const lead = i / (ribbonCards.length - 1);
+    const s = ribbonFlow.flow * (1 + RIBBON_SPAN) - lead * RIBBON_SPAN;
+    if (s < -0.02 || s > 1.02) { gsap.set(card, { x: -9999, y: -9999 }); return; }
+    const p = ribbonPoint(s);
+    const q = ribbonPoint(Math.min(1, s + 0.015));
+    let rot = Math.atan2(q.y - p.y, q.x - p.x) * (180 / Math.PI) + 180;
+    if (rot > 180) rot -= 360;
+    gsap.set(card, {
+      x: p.x, y: p.y, z: p.z,
+      xPercent: -50, yPercent: -50,
+      rotation: rot,
+      rotationY: p.rY,
+      zIndex: Math.round(1200 + p.z),
+    });
   });
 }
-sizeDrum();
-window.addEventListener("resize", sizeDrum);
+renderRibbon();
+window.addEventListener("resize", renderRibbon);
 
 const motionRow1 = document.getElementById("motionRow1");
 const motionRow2 = document.getElementById("motionRow2");
@@ -340,14 +371,8 @@ motionTl
    twisting away like unwinding film). Cards are conveyed ALONG the
    rail as you scroll — a continuous strip flowing through, scrubbed
    and fully reversible. */
-/* the ride: the drum rises from below the fold, spinning a full turn
-   as it climbs past the crossing headings and exits off the top */
-motionTl.fromTo(
-  drum,
-  { rotationY: -20, y: () => window.innerHeight * 1.25 },
-  { rotationY: -380, y: () => -window.innerHeight * 1.45, ease: "none", duration: 7.4 },
-  2.2
-);
+/* the ride: the strip flows along the 3D rail */
+motionTl.to(ribbonFlow, { flow: 1, ease: "none", duration: 7.4, onUpdate: renderRibbon }, 2.2);
 
 /* ---------- Mosaic: scattered tiles assemble ---------- */
 const tilesWrap = document.getElementById("mosaicTiles");

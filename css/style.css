@@ -219,21 +219,18 @@ body.body--green { background-color: var(--green); }
   pointer-events: none;
 }
 .motion__band .motion__card { position: absolute; left: 0; top: 0; }
-.motion__drum {
-  /* the rotating cylinder; tiles are placed around it in JS */
+.motion__card {
+  /* ribbon shot: positioned along the 3D rail in JS */
   position: absolute;
-  left: 50%; top: 50%;
-  transform-style: preserve-3d;
-  will-change: transform;
-}
-.motion__tile3d {
-  position: absolute;
-  left: 50%; top: 50%;
+  left: 0; top: 0;
+  width: 24vw;
+  aspect-ratio: 16 / 10;
   background-size: cover;
   background-position: center;
-  border-radius: 6px;
+  border-radius: 8px;
   border: 1px solid rgba(234, 230, 221, 0.14);
-  /* backfaces stay visible so you see through the drum, like the reference */
+  box-shadow: 0 14px 44px rgba(0, 0, 0, 0.42);
+  will-change: transform;
 }
 
 /* ============ MOSAIC ============ */
