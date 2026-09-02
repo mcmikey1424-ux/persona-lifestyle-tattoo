@@ -309,6 +309,33 @@ body.body--green { background-color: var(--green); }
   mix-blend-mode: difference;
   color: var(--ink);
 }
+/* ============ INFINITE IMAGE TUNNEL (Framer port) ============ */
+.tunnel { position: relative; height: 100vh; background: var(--bg); }
+.tunnel__viewport {
+  position: absolute; inset: 0; overflow: hidden;
+  background: #000000;
+  perspective: 1800px;
+  perspective-origin: 50% 50%;
+  contain: layout paint;
+}
+.tunnel__scene {
+  position: absolute; inset: 0;
+  transform-style: preserve-3d;
+  will-change: transform;
+  pointer-events: none;
+}
+.tunnel__scene, .tunnel__scene * { transform-style: preserve-3d; }
+.tunnel__tile { position: absolute; left: 50%; top: 50%; overflow: hidden; background: #050505; }
+.tunnel__tile img {
+  width: 100%; height: 100%; object-fit: cover; display: block;
+  pointer-events: none; user-select: none;
+}
+.tunnel__bar { position: absolute; pointer-events: none; }
+.tunnel__vignette {
+  position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(circle at 50% 50%, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0) 20%);
+}
+
 /* ============ MOSAIC ============ */
 .mosaic { position: relative; }
 .mosaic__stage {

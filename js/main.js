@@ -169,7 +169,7 @@ introTl
     { yPercent: 0, duration: 0.8, stagger: 0.08, ease: "power3.out" },
     "-=0.6"
   )
-  .to("#heroHint", { opacity: 1, duration: 0.6 }, "-=0.3");
+  ;
 
 /* ---------- Hero shrink into nav ---------- */
 const heroWord = document.getElementById("heroWord");
@@ -191,7 +191,6 @@ gsap.timeline({
   .to(heroWord, { scale: () => heroScale(), top: 20, ease: "power1.inOut", force3D: true }, 0)
   /* text blocks sweep OUT to their own sides on scroll (portrait untouched) */
   .to("#heroTagline", { x: () => -window.innerWidth * 0.6, opacity: 0, ease: "power1.in" }, 0)
-  .to("#heroHint", { opacity: 0, ease: "none", duration: 0.25 }, 0)
   .to("#heroMono", { x: () => window.innerWidth * 0.6, opacity: 0, ease: "power1.in" }, 0)
   /* explicit from-value: with invalidateOnRefresh, a refresh mid-intro
      (orbit still hidden) would otherwise capture opacity 0 as the start
@@ -570,7 +569,11 @@ motionTl
     const glassDamping = 1 - Math.exp(-0.15 * d60);
 
     lerped += (glassProgress.p - lerped) * damping;
-    const u = 1 - Math.min(1, lerped);
+    /* unfold across the first 82%% of the pin; the last 18%% SHATTERS the
+       settled grid like glass */
+    const unfoldP = Math.min(1, lerped / 0.82);
+    const shatter = Math.max(0, Math.min(1, (lerped - 0.84) / 0.16));
+    const u = 1 - unfoldP;
 
     if (glassProgress.p === 0) {
       if (hasStartedScroll) { t = group.rotation.y / Math.max(0.01, AUTO_SPIN); hasStartedScroll = false; }
@@ -612,7 +615,22 @@ motionTl
       mesh.rotation.x += (fc.baseRot[0] * u - mesh.rotation.x) * damping;
       mesh.rotation.y += (fc.baseRot[1] * u - mesh.rotation.y) * damping;
       mesh.rotation.z += (fc.baseRot[2] * u - mesh.rotation.z) * damping;
-      const targetOp = 1 - (1 - PHOTO_OPACITY) * u;
+      /* glass-shard burst: each tile flies outward from center with its
+         own deterministic spin, fading as it goes */
+      if (shatter > 0) {
+        const sd = Math.sin(i * 12.9898) * 43758.5453;
+        const j = sd - Math.floor(sd);
+        const dirX = fc.flatPos[0] * 1.6 + (j - 0.5) * 2.5;
+        const dirY = fc.flatPos[1] * 1.6 + (j * 7 % 1 - 0.5) * 2.5;
+        const sEase = shatter * shatter;
+        mesh.position.x += dirX * sEase * 3;
+        mesh.position.y += dirY * sEase * 3;
+        mesh.position.z += (j - 0.3) * sEase * 8;
+        mesh.rotation.x += (j - 0.5) * sEase * 4;
+        mesh.rotation.y += (j * 3 % 1 - 0.5) * sEase * 5;
+        mesh.rotation.z += (j * 5 % 1 - 0.5) * sEase * 3;
+      }
+      const targetOp = (1 - (1 - PHOTO_OPACITY) * u) * (1 - shatter);
       mat.opacity += (targetOp - mat.opacity) * glassDamping;
       mat.color.setRGB(u, u, u);
       mat.emissive.setRGB(1 - u, 1 - u, 1 - u);
@@ -630,6 +648,181 @@ motionTl
   window.__glassProgress = glassProgress;
   window.__glassHint = hint;
   window.__glassDebug = function () { return { running: running, lerped: lerped, t: t, rotY: group.rotation.y, f0: faces[0].mesh.position.toArray() }; };
+})();
+
+
+/* ---------- InfiniteImageTunnel (Framer SK1BQY, ported 1:1) ----------
+   Pure CSS-3D tunnel: tiles glued to left/right/ceiling/floor planes,
+   traveling toward the camera and wrapping; wireframe rings + surface
+   lines; mouse parallax (rotY px*7 / rotX -py*5); far-end fade; the
+   layout table, geometry and loop math are verbatim from the source. */
+(function () {
+  const viewport = document.getElementById("tunnelViewport");
+  const sceneEl = document.getElementById("tunnelScene");
+  if (!viewport || !sceneEl) return;
+
+  const LAYOUT = [
+    ["left",-0.34,0.30,0.62,0.045,0],["left",0.36,0.22,0.30,0.075,8],["left",0.06,0.40,0.70,0.145,1],
+    ["left",-0.52,0.18,0.42,0.205,9],["left",0.44,0.26,0.52,0.255,2],["left",-0.18,0.34,0.44,0.335,10],
+    ["left",0.20,0.30,0.66,0.395,3],["left",-0.46,0.24,0.36,0.475,4],["left",0.30,0.20,0.30,0.535,11],
+    ["left",-0.10,0.36,0.58,0.605,5],["left",0.48,0.22,0.40,0.695,2],["left",-0.36,0.28,0.50,0.775,6],
+    ["left",0.14,0.24,0.34,0.865,6],["left",-0.28,0.30,0.46,0.935,7],
+    ["right",0.32,0.26,0.44,0.030,4],["right",-0.24,0.36,0.68,0.095,8],["right",0.50,0.18,0.28,0.170,2],
+    ["right",-0.06,0.42,0.56,0.230,9],["right",0.38,0.24,0.38,0.310,10],["right",-0.44,0.22,0.46,0.370,0],
+    ["right",0.10,0.34,0.64,0.445,11],["right",-0.34,0.28,0.34,0.520,3],["right",0.44,0.20,0.42,0.585,1],
+    ["right",-0.14,0.32,0.52,0.665,4],["right",0.26,0.24,0.30,0.740,1],["right",-0.48,0.26,0.48,0.820,6],
+    ["right",0.06,0.30,0.40,0.900,5],
+    ["ceiling",-0.22,0.40,0.70,0.115,2],["ceiling",0.34,0.28,0.44,0.290,4],["ceiling",-0.06,0.46,0.80,0.430,5],
+    ["ceiling",0.40,0.24,0.36,0.610,6],["ceiling",-0.30,0.36,0.60,0.780,9],["ceiling",0.18,0.30,0.42,0.925,2],
+    ["floor",0.30,0.26,0.40,0.060,1],["floor",-0.34,0.30,0.52,0.160,3],["floor",0.08,0.22,0.30,0.245,5],
+    ["floor",0.42,0.24,0.44,0.355,7],["floor",-0.20,0.34,0.58,0.470,10],["floor",0.24,0.20,0.28,0.560,3],
+    ["floor",-0.44,0.26,0.46,0.680,0],["floor",0.12,0.30,0.50,0.800,8],["floor",-0.16,0.24,0.34,0.890,4],
+    ["floor",0.36,0.28,0.42,0.960,11],
+  ];
+  const DEPTH_SPAN_SCALE = 2.2, BOOST_MAX = 2.6, BOOST_EASE = 1.4;
+  const DEPTH = 5000, SPEED = 1, TILE_SCALE = 1, TILE_GAP = 12;
+  const GRID_LINE = "rgba(255, 255, 255, 0.25)", GRID_T = 1;
+  const IMAGES = [
+    "work-irezumi", "work-blackwork", "work-realism", "work-neotrad",
+  ].map(function (f) { return "https://cdn.jsdelivr.net/gh/mcmikey1424-ux/persona-lifestyle-tattoo@master/assets/" + f + ".jpg"; });
+
+  function surfaceTransform(surface, geo, offset) {
+    switch (surface) {
+      case "left": return "translate3d(" + -geo.halfWidth + "px, " + offset * geo.halfHeight + "px, 0px) rotateY(90deg)";
+      case "right": return "translate3d(" + geo.halfWidth + "px, " + offset * geo.halfHeight + "px, 0px) rotateY(-90deg)";
+      case "ceiling": return "translate3d(" + offset * geo.halfWidth + "px, " + -geo.halfHeight + "px, 0px) rotateX(-90deg)";
+      default: return "translate3d(" + offset * geo.halfWidth + "px, " + geo.halfHeight + "px, 0px) rotateX(90deg)";
+    }
+  }
+
+  let geo, frameCount, tileEls = [], frameEls = [], baseTransforms = [];
+  const tileZ = [], frameZ = [];
+
+  function build() {
+    const w = viewport.clientWidth || window.innerWidth;
+    const h = viewport.clientHeight || window.innerHeight;
+    frameCount = w < 640 ? 14 : 20;
+    geo = { halfWidth: Math.max(120, w / 2), halfHeight: Math.max(90, h / 2), depth: DEPTH, bay: DEPTH / frameCount };
+    const ratio = Math.min(1, Math.max(0.55, w / 1400));
+    viewport.style.perspective = Math.round(1800 * ratio) + "px";
+    sceneEl.innerHTML = "";
+    tileEls = []; frameEls = []; baseTransforms = [];
+    tileZ.length = 0; frameZ.length = 0;
+
+    /* far-end cap */
+    const cap = document.createElement("div");
+    cap.style.cssText = "position:absolute;left:50%;top:50%;width:" + geo.halfWidth * 2 + "px;height:" + geo.halfHeight * 2 +
+      "px;margin-left:" + -geo.halfWidth + "px;margin-top:" + -geo.halfHeight + "px;background:#000;transform:translate3d(0,0," + -DEPTH + "px)";
+    sceneEl.appendChild(cap);
+
+    /* longitudinal surface lines (12, verbatim offsets) */
+    [["left",-1],["left",-0.34],["left",0.34],["left",1],["right",-1],["right",-0.34],["right",0.34],["right",1],
+     ["ceiling",-0.5],["ceiling",0.5],["floor",-0.5],["floor",0.5]].forEach(function (l) {
+      const isWall = l[0] === "left" || l[0] === "right";
+      const lw = isWall ? DEPTH : GRID_T, lh = isWall ? GRID_T : DEPTH;
+      const dir = (l[0] === "left" || l[0] === "ceiling") ? 1 : -1;
+      const shift = isWall ? "translate3d(" + (dir * DEPTH / 2) + "px, 0px, 0px)" : "translate3d(0px, " + (dir * DEPTH / 2) + "px, 0px)";
+      const el = document.createElement("div");
+      el.className = "tunnel__bar";
+      el.style.cssText = "left:50%;top:50%;width:" + lw + "px;height:" + lh + "px;margin-left:" + -lw / 2 + "px;margin-top:" + -lh / 2 +
+        "px;background:" + GRID_LINE + ";transform:" + surfaceTransform(l[0], geo, l[1]) + " " + shift;
+      sceneEl.appendChild(el);
+    });
+
+    /* wireframe rings */
+    for (let i = 0; i < frameCount; i++) {
+      const fw = geo.halfWidth * 2, fh = geo.halfHeight * 2, ft = GRID_T;
+      const ring = document.createElement("div");
+      ring.style.cssText = "position:absolute;left:50%;top:50%;width:" + fw + "px;height:" + fh + "px;margin-left:" + -fw / 2 +
+        "px;margin-top:" + -fh / 2 + "px;pointer-events:none";
+      [[0, 0, fw, ft, "left:0;top:0"], [0, 0, fw, ft, "left:0;bottom:0"],
+       [0, 0, ft, Math.max(0, fh - ft * 2), "left:0;top:" + ft + "px"], [0, 0, ft, Math.max(0, fh - ft * 2), "right:0;top:" + ft + "px"]
+      ].forEach(function (b) {
+        const bar = document.createElement("div");
+        bar.style.cssText = "position:absolute;background:" + GRID_LINE + ";width:" + b[2] + "px;height:" + b[3] + "px;" + b[4];
+        ring.appendChild(bar);
+      });
+      sceneEl.appendChild(ring);
+      frameEls.push(ring);
+      frameZ.push(i / frameCount * DEPTH);
+    }
+
+    /* tiles */
+    LAYOUT.forEach(function (spec) {
+      const surface = spec[0], offset = spec[1], cross = spec[2], span = spec[3], depth01 = spec[4], idx = spec[5];
+      const isWall = surface === "left" || surface === "right";
+      const acrossExtent = isWall ? geo.halfHeight * 2 : geo.halfWidth * 2;
+      const across = acrossExtent * cross * TILE_SCALE;
+      const along = geo.bay * span * TILE_SCALE * DEPTH_SPAN_SCALE;
+      const tw = Math.max(8, (isWall ? along : across) - TILE_GAP);
+      const th = Math.max(8, (isWall ? across : along) - TILE_GAP);
+      const el = document.createElement("div");
+      el.className = "tunnel__tile";
+      el.style.cssText = "width:" + tw + "px;height:" + th + "px;margin-left:" + -tw / 2 + "px;margin-top:" + -th / 2 + "px";
+      const img = document.createElement("img");
+      img.src = IMAGES[idx % IMAGES.length];
+      img.draggable = false; img.loading = "lazy"; img.decoding = "async";
+      img.crossOrigin = "anonymous";
+      el.appendChild(img);
+      sceneEl.appendChild(el);
+      tileEls.push(el);
+      baseTransforms.push(surfaceTransform(surface, geo, offset));
+      tileZ.push(depth01 * DEPTH);
+    });
+  }
+  build();
+  let rebuildTimer;
+  window.addEventListener("resize", function () { clearTimeout(rebuildTimer); rebuildTimer = setTimeout(build, 200); });
+
+  /* pointer parallax + long-press boost */
+  const ptr = { x: 0, y: 0 }, ptrTarget = { x: 0, y: 0 };
+  let hold = false;
+  viewport.style.pointerEvents = "auto";
+  viewport.addEventListener("pointermove", function (e) {
+    const r = viewport.getBoundingClientRect();
+    if (r.width === 0) return;
+    ptrTarget.x = Math.max(-0.5, Math.min(0.5, (e.clientX - r.left) / r.width - 0.5));
+    ptrTarget.y = Math.max(-0.5, Math.min(0.5, (e.clientY - r.top) / r.height - 0.5));
+  }, { passive: true });
+  viewport.addEventListener("pointerleave", function () { ptrTarget.x = 0; ptrTarget.y = 0; hold = false; }, { passive: true });
+  viewport.addEventListener("pointerdown", function () { hold = true; }, { passive: true });
+  viewport.addEventListener("pointerup", function () { hold = false; }, { passive: true });
+
+  /* loop (verbatim math: ramp, boost, wrap, far fade) */
+  let ramp = 0, boost = 1, lastT = 0, running = false, rafId = 0, visible = false;
+  function tick(time) {
+    if (!running) return;
+    const last = lastT || time; lastT = time;
+    const dt = Math.min(0.05, (time - last) / 1000);
+    ramp += (1 - ramp) * Math.min(1, dt * 2.4);
+    boost += ((hold ? BOOST_MAX : 1) - boost) * Math.min(1, dt * BOOST_EASE);
+    const idle = 0.035;
+    const factor = idle + (1 - idle) * ramp;
+    const NEAR = -Math.max(200, geo.halfWidth * 0.4);
+    const delta = 320 * SPEED * factor * boost * dt;
+    ptr.x += (ptrTarget.x - ptr.x) * Math.min(1, dt * 3);
+    ptr.y += (ptrTarget.y - ptr.y) * Math.min(1, dt * 3);
+    sceneEl.style.transform = "rotateY(" + ptr.x * 7 + "deg) rotateX(" + (-ptr.y * 5) + "deg)";
+    const fadeStart = DEPTH * 0.72, fadeSpan = DEPTH * 0.28;
+    for (let i = 0; i < tileEls.length; i++) {
+      let z = tileZ[i] - delta; if (z < NEAR) z += DEPTH; tileZ[i] = z;
+      tileEls[i].style.transform = "translate3d(0px, 0px, " + -z + "px) " + baseTransforms[i];
+      tileEls[i].style.opacity = z > fadeStart ? String(Math.max(0, Math.min(1, 1 - (z - fadeStart) / fadeSpan))) : "1";
+    }
+    for (let i = 0; i < frameEls.length; i++) {
+      let z = frameZ[i] - delta; if (z < NEAR) z += DEPTH; frameZ[i] = z;
+      frameEls[i].style.transform = "translate3d(0px, 0px, " + -z + "px)";
+      frameEls[i].style.opacity = z > fadeStart ? String(Math.max(0, Math.min(1, 1 - (z - fadeStart) / fadeSpan))) : "1";
+    }
+    rafId = requestAnimationFrame(tick);
+  }
+  function start() { if (running) return; running = true; lastT = 0; rafId = requestAnimationFrame(tick); }
+  function stop() { if (!running) return; running = false; cancelAnimationFrame(rafId); }
+  new IntersectionObserver(function (es) {
+    visible = !!(es[0] && es[0].isIntersecting);
+    if (visible && !document.hidden) start(); else stop();
+  }, { threshold: 0 }).observe(viewport);
+  document.addEventListener("visibilitychange", function () { if (document.hidden) stop(); else if (visible) start(); });
 })();
 
 /* ---------- Mosaic: scattered tiles assemble ---------- */
