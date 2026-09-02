@@ -297,7 +297,11 @@ if (orbitRing) {
   const ORBIT_DEG_PER_PX = 0.35;   /* scroll boost */
   const ORBIT_IDLE_DPS = 14.4;     /* idle auto-spin, 360deg/25s like the reference */
   let orbitCur = 0, orbitScrollSm = 0;
+  const orbitLayer = document.getElementById("orbit");
   gsap.ticker.add((t, dtMs) => {
+    /* skip all work while the layer is force-hidden past the hero -
+       identical motion whenever visible, zero cost when not */
+    if (orbitLayer && orbitLayer.style.visibility === "hidden") return;
     const dt = Math.min(dtMs, 100) / 1000;
     const scrollTarget = (window.scrollY || 0) * ORBIT_DEG_PER_PX;
     orbitScrollSm += (scrollTarget - orbitScrollSm) * 0.09; /* lerped scroll spin */
@@ -325,6 +329,9 @@ if (orbitImgA && !reduceMotion) {
   PORTRAITS.forEach((src) => { const i = new Image(); i.crossOrigin = "anonymous"; i.src = src; });
   let pIdx = 0;
   setInterval(() => {
+    /* hidden layer: do nothing this tick (cadence unchanged) */
+    const layer = document.getElementById("orbit");
+    if (layer && layer.style.visibility === "hidden") return;
     pIdx = (pIdx + 1) % PORTRAITS.length;
     const [, vh, name, handle] = PORTRAIT_LIST[pIdx];
     /* sequential swap: fully out, swap, fully in — no double-exposure.
