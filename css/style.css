@@ -211,6 +211,50 @@ body.body--green { background-color: var(--green); }
   transform: translate(-50%, -50%);
   text-align: center;
 }
+/* ============ TYPOGRAPHY ORBIT (hero) ============ */
+.orbit {
+  /* exact reference values: perspective 1000, tilt -9/5/-26, R=330px */
+  --orbR: 330px;
+  position: absolute; inset: 0;
+  perspective: 1000px;
+  pointer-events: none;
+  z-index: 1;
+}
+.orbit__stage {
+  position: absolute; inset: 0;
+  transform-style: preserve-3d;
+}
+.orbit__img {
+  position: absolute; left: 50%; top: 55%;
+  height: 72vh; width: auto;
+  transform: translate(-50%, -50%) translateZ(0);
+  user-select: none;
+}
+.orbit__tilt {
+  position: absolute; left: 50%; top: 58%;
+  width: 0; height: 0;
+  transform: translate(-45px, 42px) rotateX(-9deg) rotateY(5deg) rotateZ(-26deg);
+  transform-style: preserve-3d;
+}
+.orbit__ring {
+  position: absolute; width: 0; height: 0;
+  transform-style: preserve-3d;
+}
+.orbit__ch {
+  position: absolute; left: 0; top: 0;
+  font-family: "Onest", "Space Grotesk", sans-serif;
+  font-weight: 600; font-size: 43px;
+  letter-spacing: 7.31px;
+  color: var(--ink);
+  white-space: pre;
+  backface-visibility: visible;
+}
+@media (max-width: 900px) {
+  .orbit { --orbR: 210px; }
+  .orbit__ch { font-size: 27px; letter-spacing: 4.6px; }
+  .orbit__img { height: 58vh; }
+}
+
 /* ============ MOSAIC ============ */
 .mosaic { position: relative; }
 .mosaic__stage {

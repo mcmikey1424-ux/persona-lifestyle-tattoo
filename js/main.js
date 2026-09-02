@@ -168,7 +168,27 @@ gsap.timeline({
   .to(heroWord, { scale: () => heroScale(), top: 20, ease: "power1.inOut", force3D: true }, 0)
   .to("#heroTagline", { scale: 0.6, opacity: 0, yPercent: -40, ease: "none" }, 0)
   .to("#heroHint", { opacity: 0, ease: "none", duration: 0.25 }, 0)
-  .to("#heroMono", { opacity: 0, yPercent: -60, ease: "none" }, 0);
+  .to("#heroMono", { opacity: 0, yPercent: -60, ease: "none" }, 0)
+  .to("#orbit", { opacity: 0, ease: "none", duration: 0.35 }, 0);
+
+/* ---------- Typography orbit (reference: tender-researchers framer) ----
+   Exact system from the reference DOM: each character is its own div at
+   translate(-50%,-50%) rotateY(i*360/N) translateZ(330px) inside a
+   preserve-3d ring that spins 360deg every 25s (linear), mounted on a
+   tilted axis translate(-45px,42px) rotateX(-9) rotateY(5) rotateZ(-26),
+   all inside a perspective:1000px stage. Backfaces stay visible (the
+   mirrored text at the back is part of the look); the cutout portrait
+   sits at z=0 in the same 3D context so the ring passes in front of and
+   behind him. */
+const ORBIT_TEXT = "INK THAT LIVES WITH YOU. WHERE STREET-CULTURE AUTHENTICITY MEETS LIFETIME TATTOO ARTISTRY. ";
+const orbitRing = document.getElementById("orbitRing");
+if (orbitRing) {
+  const N = ORBIT_TEXT.length;
+  orbitRing.innerHTML = [...ORBIT_TEXT].map((ch, i) =>
+    `<div class="orbit__ch" style="transform:translate(-50%,-50%) rotateY(${(i * 360 / N).toFixed(4)}deg) translateZ(var(--orbR))">${ch === " " ? "&nbsp;" : ch}</div>`
+  ).join("");
+  gsap.to(orbitRing, { rotationY: 360, duration: 25, ease: "none", repeat: -1 });
+}
 
 /* Nav links appear once the morph completes. The fixed morphing wordmark
    itself stays as the permanent logo (no swap — no end-of-shrink flicker);
