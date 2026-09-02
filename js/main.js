@@ -152,7 +152,21 @@ function unlockScroll() {
   if (lenis) lenis.start();
   ScrollTrigger.refresh();
 }
-const introTl = gsap.timeline({ onComplete: unlockScroll });
+/* Trionn-style readiness gate: the intro starts only when fonts and
+   the hero portrait are ACTUALLY ready (5s failsafe), so the curtain
+   never lifts onto popping fonts or a missing image */
+const introTl = gsap.timeline({ paused: true, onComplete: unlockScroll });
+(function gateIntro() {
+  const img = document.getElementById("orbitImgA");
+  const ready = [
+    document.fonts ? document.fonts.ready.catch(() => {}) : Promise.resolve(),
+    img && img.decode ? img.decode().catch(() => {}) : Promise.resolve(),
+  ];
+  let done = false;
+  const go = () => { if (!done) { done = true; introTl.play(); } };
+  Promise.all(ready).then(go);
+  setTimeout(go, 5000); /* failsafe */
+})();
 /* scroll input fast-forwards the intro instead of being swallowed */
 function skipIntro() {
   if (!introLocked) return;
