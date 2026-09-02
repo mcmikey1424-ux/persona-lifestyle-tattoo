@@ -187,7 +187,18 @@ if (orbitRing) {
   orbitRing.innerHTML = [...ORBIT_TEXT].map((ch, i) =>
     `<div class="orbit__ch" style="transform:translate(-50%,-50%) rotateY(${(i * 360 / N).toFixed(4)}deg) translateZ(var(--orbR))">${ch === " " ? "&nbsp;" : ch}</div>`
   ).join("");
-  gsap.to(orbitRing, { rotationY: 360, duration: 25, ease: "none", repeat: -1 });
+  /* scroll-driven spin: the ring turns with scroll, direction follows
+     the scroll direction, smoothed with a light lerp for inertia */
+  const ORBIT_DEG_PER_PX = 0.35;   /* scroll boost */
+  const ORBIT_IDLE_DPS = 14.4;     /* idle auto-spin, 360deg/25s like the reference */
+  let orbitCur = 0, orbitScrollSm = 0;
+  gsap.ticker.add((t, dtMs) => {
+    const dt = Math.min(dtMs, 100) / 1000;
+    const scrollTarget = (window.scrollY || 0) * ORBIT_DEG_PER_PX;
+    orbitScrollSm += (scrollTarget - orbitScrollSm) * 0.09; /* lerped scroll spin */
+    orbitCur += ORBIT_IDLE_DPS * dt;                        /* idle auto-spin */
+    gsap.set(orbitRing, { rotationY: orbitCur + orbitScrollSm });
+  });
 }
 
 /* Nav links appear once the morph completes. The fixed morphing wordmark
