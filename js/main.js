@@ -321,6 +321,15 @@ if (orbitRing) {
   const ORBIT_IDLE_DPS = 14.4;     /* idle auto-spin, 360deg/25s like the reference */
   let orbitCur = 0, orbitScrollSm = 0;
   const orbitLayer = document.getElementById("orbit");
+  /* cursor interactivity: the whole orbit (ring + portrait stage) tilts
+     softly toward the pointer, lerped for inertia. Applied to the stage
+     wrapper (no CSS transform there, so nothing gets clobbered). */
+  const orbitStage = document.querySelector(".orbit__stage");
+  const orbitPtr = { x: 0, y: 0 }, orbitPtrSm = { x: 0, y: 0 };
+  window.addEventListener("mousemove", (e) => {
+    orbitPtr.x = (e.clientX / window.innerWidth) - 0.5;
+    orbitPtr.y = (e.clientY / window.innerHeight) - 0.5;
+  }, { passive: true });
   gsap.ticker.add((t, dtMs) => {
     /* skip all work while the layer is force-hidden past the hero -
        identical motion whenever visible, zero cost when not */
@@ -329,7 +338,10 @@ if (orbitRing) {
     const scrollTarget = (window.scrollY || 0) * ORBIT_DEG_PER_PX;
     orbitScrollSm += (scrollTarget - orbitScrollSm) * 0.09; /* lerped scroll spin */
     orbitCur += ORBIT_IDLE_DPS * dt;                        /* idle auto-spin */
-    gsap.set(orbitRing, { rotationY: orbitCur + orbitScrollSm });
+    orbitPtrSm.x += (orbitPtr.x - orbitPtrSm.x) * 0.06;
+    orbitPtrSm.y += (orbitPtr.y - orbitPtrSm.y) * 0.06;
+    gsap.set(orbitRing, { rotationY: orbitCur + orbitScrollSm + orbitPtrSm.x * 30 });
+    if (orbitStage) gsap.set(orbitStage, { rotationY: orbitPtrSm.x * 8, rotationX: -orbitPtrSm.y * 5 });
   });
 }
 
