@@ -1022,13 +1022,18 @@ const tilesWrap = document.getElementById("mosaicTiles");
 const COLS = 6, ROWS = 4;
 const tiles = [];
 
-const MOSAIC_RATIO = 1304 / 1440; /* natural size of the cropped irezumi photo */
+const MOSAIC_RATIO = 720 / 1280; /* the reel's frame */
 function layoutTiles() {
   const H = tilesWrap.clientHeight * 0.86;
   const W = H * MOSAIC_RATIO;
   const ox = (tilesWrap.clientWidth - W) / 2;
   const oy = (tilesWrap.clientHeight - H) / 2;
   const tw = W / COLS, th = H / ROWS;
+  const vid = document.getElementById("mosaicVideo");
+  if (vid) {
+    vid.style.width = W + "px"; vid.style.height = H + "px";
+    vid.style.left = ox + "px"; vid.style.top = oy + "px";
+  }
   tiles.forEach(({ el, c, r }) => {
     el.style.width = tw + "px";
     el.style.height = th + "px";
@@ -1086,6 +1091,9 @@ tiles.forEach(({ el, c, r }, i) => {
     late ? 0.35 + rand(seed + 7) * 0.25 : rand(seed + 3) * 0.3
   );
 });
+/* tiles assembled -> dissolve into the playing reel (same box) */
+mosaicTl.fromTo("#mosaicVideo", { opacity: 0 }, { opacity: 1, duration: 0.25, ease: "none", immediateRender: false }, 0.72);
+mosaicTl.to("#mosaicTiles", { opacity: 0, duration: 0.25, ease: "none" }, 0.72);
 mosaicTl.fromTo(
   ".mosaic__overlay > *",
   { opacity: 0, y: 30 },

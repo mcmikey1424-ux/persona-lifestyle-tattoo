@@ -358,9 +358,16 @@ body.body--green { background-color: var(--green); }
   height: 100vh; position: relative; overflow: hidden;
 }
 .mosaic__tiles { position: absolute; inset: 0; }
+.mosaic__video {
+  /* the playing reel beneath the tile assembly - revealed when the
+     tiles finish assembling; geometry set by layoutTiles */
+  position: absolute;
+  object-fit: cover;
+  opacity: 0;
+}
 .tile {
   position: absolute;
-  background-image: url("https://cdn.jsdelivr.net/gh/mcmikey1424-ux/persona-lifestyle-tattoo@master/assets/work-irezumi.jpg");
+  background-image: url("https://cdn.jsdelivr.net/gh/mcmikey1424-ux/persona-lifestyle-tattoo@master/assets/mosaic-poster.jpg");
   background-repeat: no-repeat;
   will-change: transform, filter, opacity;
 }
