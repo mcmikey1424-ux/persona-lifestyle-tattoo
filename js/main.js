@@ -316,9 +316,9 @@ const ribbonCurve = new THREE.CatmullRomCurve3([
    D) the strip breaks apart and six shots settle into a flat 2x3 grid.
    The rail morphs between keyframes A->B->C while cards drift along
    it; in the final phase six cards blend off the rail into the grid. */
-const RAIL_A = [[10, -7, -9], [6, -5.6, -8], [3, -4.9, -7.2], [0, -4.6, -7], [-3, -4.9, -7.2], [-6, -5.6, -8], [-10, -7, -9]];
-const RAIL_B = [[24, -6, -6], [15, -3.6, -3], [7.5, -1.6, -0.5], [0.5, 0.4, 1.6], [-7, 2.2, 0], [-15, 4.2, -3], [-23, 6.5, -6.5]];
-const RAIL_C = [[11, 3.2, -7], [7, 4.6, -6], [3.5, 5.6, -5.4], [0, 6, -5.2], [-3.5, 5.6, -5.4], [-7, 4.6, -6], [-11, 3.2, -7]];
+const RAIL_A = [[11, -7.5, -9], [6, -5.8, -8], [3, -5.0, -7.2], [0, -4.7, -7], [-3, -5.0, -7.4], [-6, -6.0, -8.4], [-10, -8.2, -9.5]];
+const RAIL_B = [[24, -5, -7], [15, -2.8, -3.5], [7.5, -1.2, -0.8], [0.5, 0.4, 1.4], [-6.5, 1.6, 0.4], [-11.5, 0.2, 1.6], [-15, -3.4, 0.2]];
+const RAIL_C = [[12, 2.6, -7.5], [7, 4.4, -6], [3.5, 5.6, -5.4], [0, 6, -5.2], [-3.5, 5.4, -5.6], [-7, 3.8, -6.4], [-11, 0.8, -7.5]];
 
 function lerpRail(src, dst, u) {
   u = u * u * (3 - 2 * u);
@@ -342,7 +342,7 @@ const texLoader = new THREE.TextureLoader();
 texLoader.crossOrigin = "anonymous";
 const ribbonMeshes = [];
 const planeGeo = new THREE.PlaneGeometry(4.5, 2.8);
-for (let k = 0; k < 10; k++) {
+for (let k = 0; k < 14; k++) {
   const tex = texLoader.load(
     `https://cdn.jsdelivr.net/gh/mcmikey1424-ux/persona-lifestyle-tattoo@master/assets/${SHOT_IMGS[k % SHOT_IMGS.length]}.jpg`,
     () => placeRibbon()
@@ -350,15 +350,16 @@ for (let k = 0; k < 10; k++) {
   tex.colorSpace = THREE.SRGBColorSpace;
   const mesh = new THREE.Mesh(
     planeGeo,
-    new THREE.MeshBasicMaterial({ map: tex, side: THREE.DoubleSide })
+    new THREE.MeshBasicMaterial({ map: tex, side: THREE.DoubleSide, depthWrite: false })
   );
+  mesh.renderOrder = k; /* shingled deck: later cards draw on top */
   mesh.visible = false;
   glScene.add(mesh);
   ribbonMeshes.push(mesh);
 }
 
 /* meshes 2..7 settle into the final 2x3 grid; the rest run off the rail */
-const GRID_OF = { 2: 0, 3: 1, 4: 2, 5: 3, 6: 4, 7: 5 };
+const GRID_OF = { 4: 0, 5: 1, 6: 2, 7: 3, 8: 4, 9: 5 };
 function gridTarget(g) {
   return new THREE.Vector3(((g % 3) - 1) * 4.9, g < 3 ? 1.75 : -1.55, -1);
 }
@@ -378,8 +379,9 @@ function placeRibbon() {
   ribbonMeshes.forEach((mesh, i) => {
     const lead = i / (ribbonMeshes.length - 1);
     const g = GRID_OF[i];
-    let s = 0.5 + (0.5 - lead) * 0.85 + (Math.min(m, 0.62) / 0.62 - 0.5) * 0.3;
-    if (g === undefined && m > 0.62) s += (m - 0.62) * 1.6; /* non-grid cards run off */
+    /* shingled: tight spacing so neighbours overlap ~45% like a fanned deck */
+    let s = 0.5 + (0.5 - lead) * 0.68 + (Math.min(m, 0.62) / 0.62 - 0.5) * 0.42;
+    if (g === undefined && m > 0.62) s += (m - 0.62) * 2.8; /* non-grid cards run off */
     if (s < 0.002 || s > 0.998) { mesh.visible = false; return; }
     mesh.visible = true;
     const pos = ribbonCurve.getPointAt(s);
