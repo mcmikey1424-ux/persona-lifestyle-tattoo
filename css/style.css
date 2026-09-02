@@ -53,14 +53,14 @@ img { max-width: 100%; display: block; }
    both locally and from the CDN) */
 .logo-o {
   display: inline-block;
-  width: 0.94em; height: 0.86em;
+  width: 0.95em; height: 0.86em;
   vertical-align: -0.02em;
   background: var(--red);
   -webkit-mask: url("../assets/logo-o.png") center / contain no-repeat;
   mask: url("../assets/logo-o.png") center / contain no-repeat;
 }
 .hl.hl--logo { display: flex; align-items: center; height: 1em; }
-.hl--logo .logo-o { width: 0.94em; height: 0.86em; }
+.hl--logo .logo-o { width: 0.95em; height: 0.86em; }
 body.body--green { background-color: var(--green); }
 
 /* ============ PRELOADER ============ */
@@ -78,10 +78,10 @@ body.body--green { background-color: var(--green); }
 /* splash wordmark: scale the monogram to the caps' cap-height and sit
    it on the baseline so it aligns with the letters */
 .preloader__word .logo-o {
-  /* round mark optically centered on the caps: cap height is ~0.70em,
-     the mark overshoots it equally above and below */
-  height: 0.80em; width: 0.875em;
-  vertical-align: -0.05em;
+  /* same proportions as the hero wordmark: 0.86em mark centered on the
+     ~0.70em cap zone (equal overshoot above and below) */
+  height: 0.86em; width: 0.95em;
+  vertical-align: -0.08em;
 }
 .preloader__bar {
   width: min(280px, 60vw); height: 1px;
