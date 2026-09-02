@@ -111,7 +111,8 @@ body.body--green { background-color: var(--green); }
   top: 4.8vh; left: 5.5vw;
   width: 89vw;
   z-index: 49;
-  pointer-events: none;
+  pointer-events: auto; /* hover scramble-flip + click-to-top */
+  cursor: pointer;
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
@@ -161,6 +162,14 @@ body.body--green { background-color: var(--green); }
 }
 .line-mask { display: block; overflow: hidden; }
 .line-mask .line { display: block; will-change: transform; }
+
+/* per-word 3D scale-up scroll text */
+.su3d { perspective: 1000px; }
+.su3d .gw {
+  display: inline-block;
+  transform-style: preserve-3d;
+  will-change: transform, opacity;
+}
 
 /* 3D char tumble (site-wide typography reveal) */
 .t3d { perspective: 900px; }
@@ -320,7 +329,6 @@ body.body--green { background-color: var(--green); }
   line-height: 1.25; font-weight: 300;
   max-width: 16em; text-align: center;
 }
-.green__words .gw { opacity: 0.14; display: inline-block; }
 .green__stage {
   height: 100vh; position: relative;
   display: flex; align-items: center; justify-content: center;
@@ -390,7 +398,6 @@ body.body--green { background-color: var(--green); }
   line-height: 1.3; font-weight: 300;
   max-width: 18em;
 }
-.statement__text .ch { opacity: 0.1; }
 
 /* ============ JOURNAL ============ */
 .journal { padding: 4vh var(--pad) 22vh; }

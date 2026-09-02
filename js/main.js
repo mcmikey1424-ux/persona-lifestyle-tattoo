@@ -43,14 +43,6 @@ function splitWords(el) {
   el.innerHTML = words.map((w) => `<span class="gw">${w}</span>`).join(" ");
   return el.querySelectorAll(".gw");
 }
-function splitChars(el) {
-  const text = el.textContent;
-  el.innerHTML = text
-    .split("")
-    .map((c) => (c === " " ? " " : `<span class="ch">${c}</span>`))
-    .join("");
-  return el.querySelectorAll(".ch");
-}
 
 /* ---------- 3D char tumble: signature typography reveal ---------- */
 function splitTumble(el) {
@@ -81,6 +73,44 @@ function tumbleIn(el, { scrub = false } = {}) {
     : { trigger: el, start: "top 85%", toggleActions: "play none none reverse" };
   if (scrub) { to.ease = "power1.out"; }
   gsap.fromTo(chars, from, to);
+}
+
+/* ---------- Scroll text: per-word 3D scale-up ----------
+   Each word scrubs from small/tilted/deep to flat as it crosses the
+   viewport; words complete one after another (sequential stagger). */
+function scaleUpText(el, opts = {}) {
+  const words = splitWords(el);
+  el.classList.add("su3d");
+  gsap.fromTo(
+    words,
+    {
+      opacity: 0.2,
+      scale: 0.8,
+      x: -36,
+      rotationY: 38,
+      z: -100,
+      transformOrigin: "0% 100%", /* left-hinged: words swing in from the left */
+      textShadow: "0 8px 22px rgba(0,0,0,0.12)",
+    },
+    {
+      opacity: 1,
+      scale: 1,
+      x: 0,
+      rotationY: 0,
+      z: 0,
+      textShadow: "0 4px 15px rgba(0,0,0,0)",
+      ease: "none",
+      duration: 1.6, /* long per-word travel so the reveal feels unhurried */
+      stagger: 0.35,
+      scrollTrigger: {
+        /* reveal spans nearly the text's whole trip up the viewport */
+        trigger: el,
+        start: opts.start || "top 95%",
+        end: opts.end || "bottom 12%",
+        scrub: 1,
+      },
+    }
+  );
 }
 
 /* ---------- Preloader ---------- */
@@ -157,6 +187,53 @@ ScrollTrigger.create({
   onLeaveBack: () => {
     gsap.to(".nav__link", { opacity: 0, filter: "blur(6px)", duration: 0.3 });
   },
+});
+
+/* ---------- Wordmark hover: scramble-flip PERSØNA ⇄ LIFESTYLE ----------
+   The fixed morphing logo is one element, so the flip works at hero size
+   and while docked in the nav alike. */
+const WORD_A = "PERSØNA";
+const WORD_B = "LIFESTYLE";
+let wordRaf = null;
+
+function renderWord(text) {
+  heroWord.innerHTML = text
+    .split("")
+    .map(
+      (c) =>
+        `<span class="hl-mask"><span class="hl${c === "Ø" ? " oslash" : ""}">${c}</span></span>`
+    )
+    .join("");
+}
+
+function scrambleWordTo(target) {
+  cancelAnimationFrame(wordRaf);
+  const startLen = heroWord.textContent.length || WORD_A.length;
+  let frame = 0;
+  const TOTAL = 16;
+  const tick = () => {
+    frame++;
+    const p = frame / TOTAL;
+    const len = Math.round(startLen + (target.length - startLen) * p);
+    const reveal = Math.floor(p * target.length);
+    if (frame >= TOTAL) {
+      renderWord(target);
+      return;
+    }
+    const text = Array.from({ length: len }, (_, i) =>
+      i < reveal ? target[i] || "" : GLYPHS[(Math.random() * GLYPHS.length) | 0]
+    ).join("");
+    renderWord(text);
+    wordRaf = requestAnimationFrame(tick);
+  };
+  tick();
+}
+
+heroWord.addEventListener("mouseenter", () => scrambleWordTo(WORD_B));
+heroWord.addEventListener("mouseleave", () => scrambleWordTo(WORD_A));
+heroWord.addEventListener("click", () => {
+  if (lenis) lenis.scrollTo(0, { duration: 1.4 });
+  else window.scrollTo({ top: 0, behavior: "smooth" });
 });
 
 /* ---------- Mosaic: scattered tiles assemble ---------- */
@@ -352,8 +429,8 @@ document.querySelectorAll("[data-work]").forEach((work) => {
   });
 });
 
-/* ---------- Philosophy: scrubbed char tumble ---------- */
-tumbleIn(document.querySelector(".philosophy__text"), { scrub: true });
+/* ---------- Philosophy: per-word 3D scale-up ---------- */
+scaleUpText(document.querySelector(".philosophy__text"));
 gsap.from(".philosophy .btn", {
   opacity: 0, y: 24, duration: 0.7,
   scrollTrigger: { trigger: ".philosophy", start: "top 55%", toggleActions: "play none none reverse" },
@@ -370,15 +447,7 @@ gsap.utils.toArray("[data-service]").forEach((row, i) => {
 });
 
 /* ---------- Green act: page tint + word reveal + hotspots ---------- */
-const greenWordsEl = document.getElementById("greenWords");
-const gWords = splitWords(greenWordsEl);
-
-gsap.to(gWords, {
-  opacity: 1,
-  stagger: 0.06,
-  ease: "none",
-  scrollTrigger: { trigger: ".green__statement", start: "top 65%", end: "bottom 60%", scrub: 0.4 },
-});
+scaleUpText(document.getElementById("greenWords"), { start: "top 95%", end: "bottom 15%" });
 
 /* pinned centerpiece: float + hotspots appear in sequence */
 const greenTl = gsap.timeline({
@@ -438,14 +507,8 @@ gsap.utils.toArray("[data-review]").forEach((card, i) => {
   });
 });
 
-/* ---------- Character statement ---------- */
-const chars = splitChars(document.getElementById("statementText"));
-gsap.to(chars, {
-  opacity: 1,
-  stagger: 0.02,
-  ease: "none",
-  scrollTrigger: { trigger: ".statement", start: "top 70%", end: "bottom 75%", scrub: 0.3 },
-});
+/* ---------- Statement ---------- */
+scaleUpText(document.getElementById("statementText"), { start: "top 95%", end: "bottom 12%" });
 
 /* ---------- Journal rows ---------- */
 gsap.utils.toArray("[data-journal]").forEach((row) => {
