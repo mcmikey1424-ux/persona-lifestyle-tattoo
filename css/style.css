@@ -320,6 +320,11 @@ body.body--green { background-color: var(--green); }
   perspective: 1800px;
   perspective-origin: 50% 50%;
   contain: layout paint;
+  /* outermost 4% feathers into black so the corridor's hard rectangular
+     boundary melts away during the zoom; at the resting 1.08 scale this
+     band sits offscreen - settled look unchanged */
+  -webkit-mask-image: radial-gradient(120% 120% at 50% 50%, #000 78%, transparent 96%);
+  mask-image: radial-gradient(120% 120% at 50% 50%, #000 78%, transparent 96%);
 }
 .tunnel__scene {
   position: absolute; inset: 0;

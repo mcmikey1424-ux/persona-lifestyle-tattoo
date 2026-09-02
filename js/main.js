@@ -452,6 +452,17 @@ function scrambleWordTo(target) {
 
 heroWord.addEventListener("mouseenter", () => scrambleWordTo(WORD_B));
 heroWord.addEventListener("mouseleave", () => scrambleWordTo(WORD_A));
+/* browsers fire no mouseleave when the ELEMENT shrinks away from a
+   stationary cursor (docking morph) - poll and restore the wordmark
+   whenever the pointer is no longer actually over it */
+const heroPointer = { x: -1, y: -1 };
+window.addEventListener("mousemove", (e) => { heroPointer.x = e.clientX; heroPointer.y = e.clientY; }, { passive: true });
+setInterval(() => {
+  if (wordTarget !== WORD_B) return;
+  const r = heroWord.getBoundingClientRect();
+  const over = heroPointer.x >= r.left && heroPointer.x <= r.right && heroPointer.y >= r.top && heroPointer.y <= r.bottom;
+  if (!over) scrambleWordTo(WORD_A);
+}, 300);
 heroWord.addEventListener("click", () => {
   if (lenis) lenis.scrollTo(0, { duration: 1.4 });
   else window.scrollTo({ top: 0, behavior: "smooth" });
