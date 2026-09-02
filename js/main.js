@@ -249,7 +249,7 @@ const PORTRAIT_LIST = [
   ["friend-2.png", 88.6, "EMELYN", "@LETTERBEFORE.N"],
   ["friend-3.png", 89.6, "BREANNA", "@BREANNX_"],
   ["friend-4.png", 98.5, "JARED", "@PRETTY5TRANGE"],
-  ["friend-5.png", 74.9, "BERNICE", "@BERTATTOOIST"],
+  ["friend-5.png", 87, "BERNICE", "@BERTATTOOIST"],
   ["friend-6.png", 88.5, "JAE", "@CRYINGBAPHOMET"],
 ];
 const PORTRAITS = PORTRAIT_LIST.map(([f]) => PORTRAIT_CDN + f);
