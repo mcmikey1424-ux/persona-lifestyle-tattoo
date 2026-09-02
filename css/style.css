@@ -75,6 +75,12 @@ body.body--green { background-color: var(--green); }
   letter-spacing: 0.32em;
   font-weight: 400;
 }
+/* splash wordmark: scale the monogram to the caps' cap-height and sit
+   it on the baseline so it aligns with the letters */
+.preloader__word .logo-o {
+  height: 0.72em; width: 0.74em;
+  vertical-align: 0;
+}
 .preloader__bar {
   width: min(280px, 60vw); height: 1px;
   background: var(--line); overflow: hidden;
