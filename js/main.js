@@ -321,10 +321,12 @@ if (orbitRing) {
   const ORBIT_IDLE_DPS = 14.4;     /* idle auto-spin, 360deg/25s like the reference */
   let orbitCur = 0, orbitScrollSm = 0;
   const orbitLayer = document.getElementById("orbit");
-  /* cursor interactivity: the whole orbit (ring + portrait stage) tilts
-     softly toward the pointer, lerped for inertia. Applied to the stage
-     wrapper (no CSS transform there, so nothing gets clobbered). */
-  const orbitStage = document.querySelector(".orbit__stage");
+  /* cursor interactivity: ONLY the text ring tilts toward the pointer
+     (the portrait stays untouched). The tilt axis base values (y 42px,
+     rotX -9, rotZ -20 - unchanged) are seeded into GSAP so the cursor
+     offsets compose with them. */
+  const orbitTiltEl = document.querySelector(".orbit__tilt");
+  gsap.set(orbitTiltEl, { y: 42, rotationX: -9, rotationZ: -20 });
   const orbitPtr = { x: 0, y: 0 }, orbitPtrSm = { x: 0, y: 0 };
   window.addEventListener("mousemove", (e) => {
     orbitPtr.x = (e.clientX / window.innerWidth) - 0.5;
@@ -340,8 +342,8 @@ if (orbitRing) {
     orbitCur += ORBIT_IDLE_DPS * dt;                        /* idle auto-spin */
     orbitPtrSm.x += (orbitPtr.x - orbitPtrSm.x) * 0.06;
     orbitPtrSm.y += (orbitPtr.y - orbitPtrSm.y) * 0.06;
-    gsap.set(orbitRing, { rotationY: orbitCur + orbitScrollSm + orbitPtrSm.x * 30 });
-    if (orbitStage) gsap.set(orbitStage, { rotationY: orbitPtrSm.x * 8, rotationX: -orbitPtrSm.y * 5 });
+    gsap.set(orbitRing, { rotationY: orbitCur + orbitScrollSm + orbitPtrSm.x * 55 });
+    gsap.set(orbitTiltEl, { rotationX: -9 - orbitPtrSm.y * 11, rotationY: orbitPtrSm.x * 16 });
   });
 }
 

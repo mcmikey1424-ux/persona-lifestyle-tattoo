@@ -269,7 +269,8 @@ body.body--green { background-color: var(--green); }
 .orbit__tilt {
   position: absolute; left: 50%; top: 50%;
   width: 0; height: 0;
-  transform: translate(0px, 42px) rotateX(-9deg) rotateY(0deg) rotateZ(-20deg);
+  /* base transform (y 42px, rotX -9, rotZ -20) lives in GSAP so the
+     cursor tilt composes with it instead of clobbering it */
   transform-style: preserve-3d;
 }
 .orbit__ring {
