@@ -195,6 +195,8 @@ ScrollTrigger.create({
 const WORD_A = "PERSØNA";
 const WORD_B = "LIFESTYLE";
 let wordRaf = null;
+let wordTimeout = null;
+let wordTarget = WORD_A; /* guard: re-fired hover events can't restart a scramble */
 
 function renderWord(text) {
   heroWord.innerHTML = text
@@ -206,27 +208,50 @@ function renderWord(text) {
     .join("");
 }
 
+/* code-glitch decode: unsettled slots cycle through code glyphs with
+   RGB-split ghosting, jitter and flicker until they lock in, left to right */
+const CODE_GLYPHS = "01<>[]{}/\\|=+*#$%&@!?;:^~";
+
 function scrambleWordTo(target) {
+  if (target === wordTarget) return;
+  wordTarget = target;
   cancelAnimationFrame(wordRaf);
-  const startLen = heroWord.textContent.length || WORD_A.length;
-  let frame = 0;
-  const TOTAL = 16;
+  clearTimeout(wordTimeout);
+  heroWord.classList.add("glitching");
+  const startLen = heroWord.textContent.replace(/\s+/g, "").length || WORD_A.length;
+  const t0 = performance.now();
+  const DURATION = 520; /* ms — time-based so throttled tabs still finish */
   const tick = () => {
-    frame++;
-    const p = frame / TOTAL;
+    const p = Math.min(1, (performance.now() - t0) / DURATION);
     const len = Math.round(startLen + (target.length - startLen) * p);
     const reveal = Math.floor(p * target.length);
-    if (frame >= TOTAL) {
+    if (p >= 1) {
       renderWord(target);
+      heroWord.classList.remove("glitching");
       return;
     }
-    const text = Array.from({ length: len }, (_, i) =>
-      i < reveal ? target[i] || "" : GLYPHS[(Math.random() * GLYPHS.length) | 0]
-    ).join("");
-    renderWord(text);
+    heroWord.innerHTML = Array.from({ length: len }, (_, i) => {
+      if (i < reveal) {
+        const t = target[i] || "";
+        return `<span class="hl-mask"><span class="hl${t === "Ø" ? " oslash" : ""}">${t}</span></span>`;
+      }
+      const c = CODE_GLYPHS[(Math.random() * CODE_GLYPHS.length) | 0];
+      const dx = (Math.random() * 8 - 4).toFixed(1);
+      const dy = (Math.random() * 6 - 3).toFixed(1);
+      const sk = (Math.random() * 10 - 5).toFixed(1);
+      const red = Math.random() < 0.16 ? " glr" : "";
+      const op = Math.random() < 0.14 ? 0.3 : 1;
+      return `<span class="hl-mask"><span class="hl glx${red}" style="transform:translate(${dx}px,${dy}px) skewX(${sk}deg);opacity:${op}">${c}</span></span>`;
+    }).join("");
     wordRaf = requestAnimationFrame(tick);
   };
   tick();
+  /* backstop: guarantee the final word even if rAF frames stall */
+  wordTimeout = setTimeout(() => {
+    cancelAnimationFrame(wordRaf);
+    renderWord(target);
+    heroWord.classList.remove("glitching");
+  }, DURATION + 90);
 }
 
 heroWord.addEventListener("mouseenter", () => scrambleWordTo(WORD_B));

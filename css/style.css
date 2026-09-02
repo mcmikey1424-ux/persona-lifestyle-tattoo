@@ -125,6 +125,15 @@ body.body--green { background-color: var(--green); }
 }
 .hl-mask { display: inline-block; overflow: hidden; }
 .hl { display: block; will-change: transform, opacity, filter; }
+/* code-glitch state while the wordmark decodes */
+.hero__word.glitching .hl-mask { overflow: visible; }
+.hl.glx {
+  font-family: var(--font-m);
+  text-shadow:
+    3px 0 rgba(176, 64, 46, 0.75),
+    -3px 0 rgba(96, 168, 184, 0.65);
+}
+.hl.glr { color: var(--red); }
 .hero__scrollhint {
   display: inline-block;
   margin: 10px 0 0 10.5vw;
