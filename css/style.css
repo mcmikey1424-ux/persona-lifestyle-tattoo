@@ -208,10 +208,36 @@ body.body--green { background-color: var(--green); }
   will-change: transform;
   align-self: flex-start;
 }
-.motion__caption {
-  text-align: center;
-  line-height: 1.5;
+.motion__glass {
+  /* GlassGallery stage: full-bleed behind the crossing rows */
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  display: block;
+  z-index: 0;
 }
+.motion__stage .motion__row { position: relative; z-index: 2; }
+.motion__hint {
+  /* reference scroll hint, verbatim styling */
+  position: absolute; bottom: 40px; right: 40px; z-index: 20;
+  display: flex; flex-direction: column; align-items: center; gap: 12px;
+  pointer-events: none;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 9px; text-transform: uppercase; letter-spacing: 0.4em;
+  transition: opacity 0.3s ease;
+}
+.motion__hint span { animation: gg-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+.motion__hint-line {
+  width: 1px; height: 40px;
+  background: rgba(255, 255, 255, 0.1);
+  position: relative; overflow: hidden;
+}
+.motion__hint-dot {
+  position: absolute; left: 0; right: 0; top: 0; height: 50%;
+  background: white;
+  animation: gg-bounce 2s infinite ease-in-out;
+}
+@keyframes gg-bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(20px); } }
+@keyframes gg-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
 /* ============ TYPOGRAPHY ORBIT (hero) ============ */
 .orbit {
   /* exact reference values: perspective 1000, tilt -9/5/-26, R=330px */

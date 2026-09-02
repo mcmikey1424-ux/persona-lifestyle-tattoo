@@ -392,6 +392,10 @@ const motionTl = gsap.timeline({
     pin: "#motionStage",
     anticipatePin: 1,
     invalidateOnRefresh: true,
+    onUpdate: (self) => {
+      if (window.__glassProgress) window.__glassProgress.p = self.progress;
+      if (window.__glassHint) window.__glassHint.style.opacity = Math.max(0, 1 - self.progress * 4.5).toString();
+    },
   },
 });
 ScrollTrigger.create({
@@ -421,6 +425,212 @@ motionTl
   )
   ;
 
+
+
+/* ---------- GlassGallery (Framer GlassGallery-kQ8n3A, ported 1:1) ----
+   Photos folded onto a spinning glass cube that UNFOLDS into a flat
+   grid on scroll. Layout config, materials, lights, damping formulas
+   and the rotation/scale/glass/face lerps are verbatim from the
+   reference; scroll progress is fed from the motion section pin. */
+(function () {
+  const canvas = document.getElementById("glassCanvas");
+  const container = document.getElementById("motionStage");
+  if (!canvas || !container || typeof THREE === "undefined") return;
+
+  const HP = Math.PI / 2;
+  const CS = 0.5;                 /* cubeSize (reference default) */
+  const AUTO_SPIN = 0.15, SCROLL_SPINS = 1, TILT = 1;
+  const GLASS = { thickness: 1.3, roughness: 0.12, opacity: 0.16, color: "#ffffff" };
+  const PHOTO_OPACITY = 1;
+
+  const IMAGES = [
+    "work-irezumi", "work-blackwork", "work-realism", "work-neotrad",
+  ].map((f) => "https://cdn.jsdelivr.net/gh/mcmikey1424-ux/persona-lifestyle-tattoo@master/assets/" + f + ".jpg");
+
+  /* quad layout: 24 faces, verbatim table from buildLayoutConfig */
+  const qO = 0.715 * CS, bO = 1.51 * CS;
+  const qdS = [1.37 * CS, 1.37 * CS];
+  const RAW = [
+    [[-bO, +qO, -qO], [0, -HP, 0], 0, 0, 0], [[-bO, -qO, -qO], [0, -HP, 0], 12, 0, 2],
+    [[-bO, +qO, +qO], [0, -HP, 0], 1, 1, 0], [[-bO, -qO, +qO], [0, -HP, 0], 13, 1, 2],
+    [[-qO, +qO, bO], [0, 0, 0], 2, 2, 0],    [[-qO, -qO, bO], [0, 0, 0], 14, 2, 2],
+    [[+qO, +qO, bO], [0, 0, 0], 3, 3, 0],    [[+qO, -qO, bO], [0, 0, 0], 15, 3, 2],
+    [[bO, +qO, +qO], [0, HP, 0], 4, 4, 0],   [[bO, -qO, +qO], [0, HP, 0], 16, 4, 2],
+    [[bO, +qO, -qO], [0, HP, 0], 5, 5, 0],   [[bO, -qO, -qO], [0, HP, 0], 17, 5, 2],
+    [[+qO, +qO, -bO], [0, Math.PI, 0], 6, 6, 0], [[+qO, -qO, -bO], [0, Math.PI, 0], 18, 6, 2],
+    [[-qO, +qO, -bO], [0, Math.PI, 0], 7, 7, 0], [[-qO, -qO, -bO], [0, Math.PI, 0], 19, 7, 2],
+    [[-qO, bO, -qO], [-HP, 0, 0], 8, 0, 1],  [[-qO, bO, +qO], [-HP, 0, 0], 20, 1, 1],
+    [[+qO, bO, -qO], [-HP, 0, 0], 9, 2, 1],  [[+qO, bO, +qO], [-HP, 0, 0], 21, 3, 1],
+    [[-qO, -bO, +qO], [HP, 0, 0], 10, 4, 1], [[-qO, -bO, -qO], [HP, 0, 0], 22, 5, 1],
+    [[+qO, -bO, +qO], [HP, 0, 0], 11, 6, 1], [[+qO, -bO, -qO], [HP, 0, 0], 23, 7, 1],
+  ];
+  const COLS = 8, ROWS = 3;
+  const gX = 0.12 * CS, gY = 0.12 * CS;
+  const fw = qdS[0], fh = qdS[1];
+  const startX = -((COLS - 1) * (fw + gX)) / 2;
+  const startY = ((ROWS - 1) * (fh + gY)) / 2;
+  const CONFIG = RAW.map(function (r) {
+    return {
+      basePos: r[0], baseRot: r[1], texIndex: r[2],
+      flatPos: [startX + r[3] * (fw + gX), startY - r[4] * (fh + gY), 0],
+    };
+  });
+
+  const w0 = container.clientWidth || window.innerWidth;
+  const h0 = container.clientHeight || window.innerHeight;
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(45, w0 / h0, 0.1, 100);
+  camera.position.z = 6.6;
+  const renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true, powerPreference: "high-performance" });
+  renderer.setSize(w0, h0, false);
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.debug.checkShaderErrors = false;
+
+  scene.add(new THREE.AmbientLight(0xffffff, 0.35));
+  const dir1 = new THREE.DirectionalLight(0xffffff, 1.2); dir1.position.set(-8, 10, -2); scene.add(dir1);
+  const dir2 = new THREE.DirectionalLight(0xffffff, 0.7); dir2.position.set(8, -5, 6); scene.add(dir2);
+  scene.add(new THREE.HemisphereLight(0xffffff, 0x444444, 0.4));
+  const coreLight = new THREE.PointLight(0xffffff, 0, 10, 1.6); scene.add(coreLight);
+  const group = new THREE.Group(); scene.add(group);
+
+  /* glass cube */
+  const glassMat = new THREE.MeshPhysicalMaterial({
+    transmission: 1, roughness: GLASS.roughness, thickness: GLASS.thickness,
+    clearcoat: 1, clearcoatRoughness: 0.05, ior: 1.45,
+    color: new THREE.Color(GLASS.color), transparent: true, opacity: 0,
+    side: THREE.DoubleSide, depthWrite: false,
+  });
+  const glassMesh = new THREE.Mesh(new THREE.BoxGeometry(3.02 * CS, 3.02 * CS, 3.02 * CS), glassMat);
+  group.add(glassMesh);
+
+  /* face meshes */
+  const texLoader = new THREE.TextureLoader();
+  texLoader.crossOrigin = "anonymous";
+  const texCache = new Map();
+  const geo = new THREE.PlaneGeometry(qdS[0], qdS[1]);
+  const faces = CONFIG.map(function (fc) {
+    const url = IMAGES[fc.texIndex % IMAGES.length];
+    let tex = texCache.get(url);
+    if (!tex) {
+      tex = texLoader.load(url);
+      tex.colorSpace = THREE.SRGBColorSpace;
+      tex.minFilter = THREE.LinearMipmapLinearFilter;
+      tex.magFilter = THREE.LinearFilter;
+      tex.anisotropy = Math.min(4, renderer.capabilities.getMaxAnisotropy());
+      texCache.set(url, tex);
+    }
+    const mat = new THREE.MeshPhysicalMaterial({
+      map: tex, emissiveMap: tex, emissive: new THREE.Color("#ffffff"),
+      transparent: true, opacity: 1, side: THREE.DoubleSide,
+      roughness: 1, metalness: 0, clearcoat: 0, clearcoatRoughness: 0.25,
+      depthWrite: true, toneMapped: false,
+    });
+    const mesh = new THREE.Mesh(geo, mat);
+    mesh.position.set(fc.basePos[0], fc.basePos[1], fc.basePos[2]);
+    mesh.rotation.set(fc.baseRot[0], fc.baseRot[1], fc.baseRot[2]);
+    group.add(mesh);
+    return { mesh: mesh, mat: mat, fc: fc };
+  });
+
+  /* scroll progress is written by the motion pin's onUpdate */
+  const glassProgress = { p: 0 };
+  const hint = document.getElementById("glassHint");
+
+  let resizeTimer;
+  window.addEventListener("resize", function () {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(function () {
+      const nw = container.clientWidth || window.innerWidth;
+      const nh = container.clientHeight || window.innerHeight;
+      camera.aspect = nw / nh; camera.updateProjectionMatrix();
+      renderer.setSize(nw, nh, false);
+    }, 150);
+  });
+
+  /* animation loop - formulas verbatim from the reference */
+  let t = 0, lerped = 0, startRotY = 0, hasStartedScroll = false;
+  let lastTime = performance.now();
+  const pointer = { x: 0, y: 0 };
+  window.addEventListener("mousemove", function (e) {
+    const rect = container.getBoundingClientRect();
+    if (rect.width > 0) {
+      pointer.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+      pointer.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+    }
+  });
+
+  let running = false, rafId = 0;
+  function animate(time) {
+    if (!running) return;
+    const delta = Math.min(0.1, (time - lastTime) / 1000);
+    lastTime = time;
+    const d60 = delta * 60;
+    const damping = 1 - Math.exp(-0.12 * d60);
+    const rotDamping = 1 - Math.exp(-0.08 * d60);
+    const glassDamping = 1 - Math.exp(-0.15 * d60);
+
+    lerped += (glassProgress.p - lerped) * damping;
+    const u = 1 - Math.min(1, lerped);
+
+    if (glassProgress.p === 0) {
+      if (hasStartedScroll) { t = group.rotation.y / Math.max(0.01, AUTO_SPIN); hasStartedScroll = false; }
+      t += delta;
+    } else if (!hasStartedScroll) {
+      const wr = ((group.rotation.y % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
+      group.rotation.y = wr; startRotY = wr; hasStartedScroll = true;
+    }
+    const rotEase = 0.5 * (1 - Math.cos(u * Math.PI));
+    const targetRotX = (0.35 + 0.1 * Math.sin(t * 0.5) - pointer.y * TILT) * rotEase;
+    const targetRotY = glassProgress.p === 0
+      ? t * AUTO_SPIN + pointer.x * TILT
+      : (startRotY + pointer.x * TILT) * rotEase + (1 - rotEase) * (SCROLL_SPINS * Math.PI * 2);
+    const targetRotZ = (0.2 + 0.08 * Math.cos(t * 0.4)) * rotEase;
+    group.rotation.x += (targetRotX - group.rotation.x) * rotDamping;
+    group.rotation.y += (targetRotY - group.rotation.y) * rotDamping;
+    group.rotation.z += (targetRotZ - group.rotation.z) * rotDamping;
+
+    const aspect = camera.aspect;
+    const responsiveScale = aspect < 1 ? Math.max(0.65, aspect) : 1;
+    const targetScale = (0.55 + 0.45 * u) * responsiveScale;
+    const nextScale = group.scale.x + (targetScale - group.scale.x) * damping;
+    group.scale.set(nextScale, nextScale, nextScale);
+
+    const glassTargetOp = glassProgress.p === 0 ? GLASS.opacity : 0;
+    glassMat.opacity += (glassTargetOp - glassMat.opacity) * glassDamping;
+    const glassScale = 0.001 + 0.999 * u;
+    glassMesh.scale.set(glassScale, glassScale, glassScale);
+    coreLight.intensity = 5 * u;
+
+    for (let i = 0; i < faces.length; i++) {
+      const mesh = faces[i].mesh, mat = faces[i].mat, fc = faces[i].fc;
+      const tx = (1 - u) * fc.flatPos[0] + u * fc.basePos[0];
+      const ty = (1 - u) * fc.flatPos[1] + u * fc.basePos[1];
+      const tz = (1 - u) * fc.flatPos[2] + u * fc.basePos[2];
+      mesh.position.x += (tx - mesh.position.x) * damping;
+      mesh.position.y += (ty - mesh.position.y) * damping;
+      mesh.position.z += (tz - mesh.position.z) * damping;
+      mesh.rotation.x += (fc.baseRot[0] * u - mesh.rotation.x) * damping;
+      mesh.rotation.y += (fc.baseRot[1] * u - mesh.rotation.y) * damping;
+      mesh.rotation.z += (fc.baseRot[2] * u - mesh.rotation.z) * damping;
+      const targetOp = 1 - (1 - PHOTO_OPACITY) * u;
+      mat.opacity += (targetOp - mat.opacity) * glassDamping;
+      mat.color.setRGB(u, u, u);
+      mat.emissive.setRGB(1 - u, 1 - u, 1 - u);
+    }
+    renderer.render(scene, camera);
+    rafId = requestAnimationFrame(animate);
+  }
+  function start() { if (running) return; running = true; lastTime = performance.now(); rafId = requestAnimationFrame(animate); }
+  function stop() { if (!running) return; running = false; cancelAnimationFrame(rafId); }
+  new IntersectionObserver(function (es) {
+    if (es[0] && es[0].isIntersecting) start(); else stop();
+  }, { threshold: 0.01 }).observe(container);
+  document.addEventListener("visibilitychange", function () { if (document.hidden) stop(); else start(); });
+
+  window.__glassProgress = glassProgress;
+  window.__glassHint = hint;
+  window.__glassDebug = function () { return { running: running, lerped: lerped, t: t, rotY: group.rotation.y, f0: faces[0].mesh.position.toArray() }; };
+})();
 
 /* ---------- Mosaic: scattered tiles assemble ---------- */
 const tilesWrap = document.getElementById("mosaicTiles");
