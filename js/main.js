@@ -861,6 +861,10 @@ motionTl
       baseTransforms.push(surfaceTransform(surface, geo, offset));
       tileZ.push(depth01 * DEPTH);
     });
+    /* static paint after EVERY build - without it a resize rebuild
+       leaves all tiles unpositioned (invisible) until the loop's next
+       full pass, which never comes during the frozen entrance */
+    applyPositions(0);
   }
   build();
   let rebuildTimer;
@@ -896,7 +900,7 @@ motionTl
       frameEls[i].style.opacity = z > fadeStart ? String(Math.max(0, Math.min(1, 1 - (z - fadeStart) / fadeSpan))) : "1";
     }
   }
-  applyPositions(0); /* static first frame so the frozen entrance has content */
+
 
   /* loop (verbatim math: ramp, boost, wrap, far fade) */
   let ramp = 0, boost = 1, lastT = 0, running = false, rafId = 0, visible = false;
@@ -1307,3 +1311,12 @@ document.querySelectorAll('a[href^="#"]').forEach((a) => {
 
 /* refresh once images settle */
 window.addEventListener("load", () => ScrollTrigger.refresh());
+
+/* resize discipline: after any resize settles, recompute EVERYTHING in
+   one synchronized pass (pins, spacers, trigger positions) - after the
+   per-component rebuilds (tunnel 200ms, glass 150ms) have finished */
+let globalResizeTimer;
+window.addEventListener("resize", () => {
+  clearTimeout(globalResizeTimer);
+  globalResizeTimer = setTimeout(() => ScrollTrigger.refresh(), 300);
+});
