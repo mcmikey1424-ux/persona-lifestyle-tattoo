@@ -17,6 +17,11 @@
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 html { scroll-behavior: auto; }
+/* hide the scrollbar (reference-site standard): vw units include the
+   scrollbar width, so with it visible EVERY right-side inset sat ~15px
+   tighter than the left - heading, tags, tagline, all of it */
+html { scrollbar-width: none; -ms-overflow-style: none; }
+html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
 html.lenis, html.lenis body { height: auto; }
 .lenis.lenis-smooth { scroll-behavior: auto !important; }
 
