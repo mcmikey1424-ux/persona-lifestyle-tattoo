@@ -318,6 +318,9 @@ body.body--green { background-color: var(--green); }
   z-index: 40;
   will-change: transform, opacity;
   background: transparent; /* page is already black; a backdrop would veil the shatter */
+  /* pre-JS state: hidden until the scrubbed entrance takes over */
+  transform: scale(0.001);
+  opacity: 0; visibility: hidden;
   perspective: 1800px;
   perspective-origin: 50% 50%;
   contain: layout paint;
