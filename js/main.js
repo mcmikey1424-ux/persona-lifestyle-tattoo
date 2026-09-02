@@ -132,6 +132,13 @@ introTl
     },
     "-=0.45"
   )
+  /* portrait + orbit: slide up from below the fold */
+  .fromTo(
+    "#orbit",
+    { yPercent: 18, opacity: 0 },
+    { yPercent: 0, opacity: 1, duration: 1.2, ease: "power3.out" },
+    "-=0.85"
+  )
   /* tagline: per-word masked rise + blur */
   .fromTo(
     "#heroTagline .tg",
