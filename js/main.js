@@ -820,10 +820,13 @@ motionTl
   const DEPTH_SPAN_SCALE = 2.2, BOOST_MAX = 2.6, BOOST_EASE = 1.4;
   const DEPTH = 5000, SPEED = 1, TILE_SCALE = 1, TILE_GAP = 12;
   const GRID_LINE = "rgba(255, 255, 255, 0.04)", GRID_T = 1;
-  /* the full 40-shot portfolio set - every tile gets its own image */
-  const IMAGES = Array.from({ length: 40 }, function (_, i) {
-    return "https://cdn.jsdelivr.net/gh/mcmikey1424-ux/persona-lifestyle-tattoo@master/assets/tunnel-" + String(i + 1).padStart(2, "0") + ".jpg";
-  });
+  /* the portfolio set - every tile gets its own image (03 removed:
+     it was a portrait of Alfrey, not a piece) */
+  const IMAGES = Array.from({ length: 40 }, function (_, i) { return i + 1; })
+    .filter(function (n) { return n !== 3; })
+    .map(function (n) {
+      return "https://cdn.jsdelivr.net/gh/mcmikey1424-ux/persona-lifestyle-tattoo@master/assets/tunnel-" + String(n).padStart(2, "0") + ".jpg";
+    });
 
   function surfaceTransform(surface, geo, offset) {
     switch (surface) {
