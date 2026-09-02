@@ -1,6 +1,6 @@
 /* ============ PERSONA LIFESTYLE TATTOO ============ */
 :root {
-  --bg: #0c0b09;
+  --bg: #000000;
   --ink: #eae6dd;
   --mut: #8c877c;
   --line: rgba(234, 230, 221, 0.14);
@@ -224,7 +224,7 @@ body.body--green { background-color: var(--green); }
 }
 .orbit__img {
   position: absolute; left: 50%; bottom: 0;
-  height: 96vh; width: auto;
+  height: 80vh; width: auto; /* trimmed cutouts: head tops align at 20vh */
   transform: translateX(-50%) translateZ(0);
   user-select: none;
 }
@@ -251,7 +251,7 @@ body.body--green { background-color: var(--green); }
 @media (max-width: 900px) {
   .orbit { --orbR: 34vw; }
   .orbit__ch { font-size: calc(34vw * 0.1303); letter-spacing: 0.17em; }
-  .orbit__img { height: 72vh; }
+  .orbit__img { height: 66vh; }
 }
 
 /* ============ GETLAYERS SYSTEMS ============ */
@@ -348,7 +348,7 @@ body.body--green { background-color: var(--green); }
   display: flex; gap: 6px; flex-wrap: wrap;
 }
 .work__tags li {
-  background: rgba(12, 11, 9, 0.55);
+  background: rgba(0, 0, 0, 0.55);
   backdrop-filter: blur(6px);
   color: var(--ink);
   padding: 6px 10px;
@@ -508,7 +508,7 @@ body.body--green { background-color: var(--green); }
 .journal__sub { color: var(--mut); font-size: 14px; }
 
 /* ============ FOOTER ============ */
-.footer { position: relative; background: #080706; }
+.footer { position: relative; background: #000000; }
 .footer__band {
   height: 110px;
   background: linear-gradient(to bottom, var(--band), rgba(8, 7, 6, 0));
