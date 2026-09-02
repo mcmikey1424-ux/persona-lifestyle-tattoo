@@ -129,9 +129,24 @@ function scrambleOnEnter(el, opts) {
   });
 }
 
+/* ---------- Reload discipline ----------
+   Every load starts at the top and plays the FULL intro; scrolling is
+   locked until it completes. No restored mid-page positions, no
+   instant state-jumping, nothing to collide or crash. */
+if ("scrollRestoration" in history) history.scrollRestoration = "manual";
+window.scrollTo(0, 0);
+if (lenis) { lenis.scrollTo(0, { immediate: true }); lenis.stop(); }
+document.documentElement.style.overflow = "hidden"; /* belt for keyboard scroll */
+
 /* ---------- Preloader ---------- */
 const pre = document.getElementById("preloader");
-const introTl = gsap.timeline();
+const introTl = gsap.timeline({
+  onComplete: () => {
+    document.documentElement.style.overflow = "";
+    if (lenis) lenis.start();
+    ScrollTrigger.refresh();
+  },
+});
 introTl
   .to(".preloader__bar span", { scaleX: 1, duration: 0.9, ease: "power2.inOut" })
   .to(pre, { yPercent: -100, duration: 0.7, ease: "power3.inOut" }, "+=0.15")
@@ -170,15 +185,6 @@ introTl
     "-=0.6"
   )
   ;
-
-/* Mid-page reload: the browser restores scroll, so skip the intro
-   choreography entirely and land everything in its finished state
-   (otherwise the fixed portrait/orbit replays over section 2+). */
-if ((window.scrollY || document.documentElement.scrollTop) > window.innerHeight * 0.4) {
-  introTl.progress(1).kill();
-  gsap.set("#orbit", { opacity: 0 });
-  gsap.set(pre, { display: "none" });
-}
 
 /* ---------- Hero shrink into nav ---------- */
 const heroWord = document.getElementById("heroWord");
