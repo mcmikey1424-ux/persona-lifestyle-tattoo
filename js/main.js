@@ -728,7 +728,6 @@ motionTl
 
   window.__glassProgress = glassProgress;
   window.__glassHint = hint;
-  window.__glassDebug = function () { return { running: running, lerped: lerped, t: t, rotY: group.rotation.y, f0: faces[0].mesh.position.toArray() }; };
 })();
 
 

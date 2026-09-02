@@ -139,12 +139,6 @@ body.body--green { background-color: var(--green); }
     -3px 0 rgba(96, 168, 184, 0.65);
 }
 .hl.glr { color: var(--red); }
-.hero__scrollhint {
-  display: inline-block;
-  margin: 10px 0 0 10.5vw;
-  font-size: 10px;
-  opacity: 0;
-}
 .hero__tag {
   /* side tags, set in the mono list style (ink-colored) */
   position: absolute; top: 34%;
@@ -199,16 +193,6 @@ body.body--green { background-color: var(--green); }
   will-change: transform, opacity;
 }
 
-/* 3D char tumble (site-wide typography reveal) */
-.t3d { perspective: 900px; }
-.t3d .tw { display: inline-block; white-space: nowrap; }
-.t3d .tch {
-  display: inline-block;
-  transform-origin: 50% 100%;
-  transform-style: preserve-3d;
-  will-change: transform, opacity;
-  backface-visibility: hidden;
-}
 .hero__mono { max-width: 300px; }
 
 /* ============ INK IN MOTION (crossing headings + arc carousel) ============ */
@@ -315,17 +299,9 @@ body.body--green { background-color: var(--green); }
   font-family: "Chakra Petch", var(--font-d);
   font-weight: 500;
 }
-/* hero-style diagonal translucent gradient fill (reference .title-container h1) */
-.gl-grad {
-  background: linear-gradient(135deg, rgb(255 255 255 / 1) 0%, rgb(255 255 255 / 0.4) 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  color: transparent;
-}
 /* blend-difference text: inverts anything that passes beneath it
    (reference: hero service labels, mix-blend-difference) */
-.motion__row, .motion__caption, .statement__text, .footer__word {
+.motion__row, .statement__text, .footer__word {
   mix-blend-mode: difference;
   color: var(--ink);
 }
