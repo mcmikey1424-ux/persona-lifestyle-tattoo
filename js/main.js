@@ -802,8 +802,12 @@ motionTl
     const delta = 320 * SPEED * factor * boost * dt;
     ptr.x += (ptrTarget.x - ptr.x) * Math.min(1, dt * 3);
     ptr.y += (ptrTarget.y - ptr.y) * Math.min(1, dt * 3);
-    const es = 0.001 + 0.999 * (window.__tunnelEnter ? window.__tunnelEnter.s : 1);
-    sceneEl.style.transform = "scale3d(" + es + ", " + es + ", " + es + ") rotateY(" + ptr.x * 7 + "deg) rotateX(" + (-ptr.y * 5) + "deg)";
+    /* entrance = camera dolly: the whole world starts pushed deep and
+       travels forward (a world-SCALE here would drag near tiles onto
+       the camera plane and project giant rectangles) */
+    const es = window.__tunnelEnter ? window.__tunnelEnter.s : 1;
+    const tz = -(1 - es) * 4000;
+    sceneEl.style.transform = "translate3d(0px, 0px, " + tz + "px) rotateY(" + ptr.x * 7 + "deg) rotateX(" + (-ptr.y * 5) + "deg)";
     const fadeStart = DEPTH * 0.72, fadeSpan = DEPTH * 0.28;
     for (let i = 0; i < tileEls.length; i++) {
       let z = tileZ[i] - delta; if (z < NEAR) z += DEPTH; tileZ[i] = z;
