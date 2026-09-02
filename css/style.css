@@ -16,11 +16,10 @@
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
-html { scroll-behavior: auto; }
+html { scroll-behavior: auto; scrollbar-width: none; -ms-overflow-style: none; }
 /* hide the scrollbar (reference-site standard): vw units include the
    scrollbar width, so with it visible EVERY right-side inset sat ~15px
    tighter than the left - heading, tags, tagline, all of it */
-html { scrollbar-width: none; -ms-overflow-style: none; }
 html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }
 html.lenis, html.lenis body { height: auto; }
 .lenis.lenis-smooth { scroll-behavior: auto !important; }
@@ -47,7 +46,6 @@ body {
 
 a { color: inherit; text-decoration: none; }
 img { max-width: 100%; display: block; }
-.oslash { color: var(--red); }
 /* the PERSONA monogram standing in for the O - a color-inheriting
    mask so it stays crisp and red at every size (relative url works
    both locally and from the CDN) */
