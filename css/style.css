@@ -258,9 +258,9 @@ body.body--green { background-color: var(--green); }
   transform-style: preserve-3d;
 }
 .orbit__img {
-  position: absolute; left: 50%; bottom: 0;
-  height: 95.5vh; width: auto; /* trimmed cutouts: head tops align at 8vh */
-  transform: translateX(-50%) translateZ(0);
+  position: absolute; left: 50%; top: 50%;
+  height: 95.5vh; width: auto; /* uniform trimmed cutouts */
+  transform: translate(-50%, -50%) translateZ(0); /* dead-center vertically */
   user-select: none;
   /* reference: torso dissolves into the ground before it ends */
   -webkit-mask-image: linear-gradient(to bottom, black 62%, transparent 91%);
