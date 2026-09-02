@@ -182,8 +182,6 @@ body.body--green { background-color: var(--green); }
 @media (max-width: 860px) {
   .hero__tagline { max-width: 90vw; font-size: clamp(28px, 7.25vw, 70px); }
 }
-.line-mask { display: block; overflow: hidden; }
-.line-mask .line { display: block; will-change: transform; }
 
 /* per-word 3D scale-up scroll text */
 .su3d { perspective: 1000px; }
