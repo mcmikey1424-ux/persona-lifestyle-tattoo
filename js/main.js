@@ -200,7 +200,7 @@ gsap.timeline({
   .fromTo("#orbit",
     { opacity: 1, scale: 1, rotation: 0, filter: "blur(0px)" },
     { opacity: 0, scale: 0.02, rotation: -14, filter: "blur(5px)",
-      transformOrigin: "50% 58%", ease: "power2.in", duration: 0.6, immediateRender: false },
+      transformOrigin: "50% 58%", ease: "power1.inOut", duration: 0.28, immediateRender: false },
     0);
 
 /* ---------- Typography orbit (reference: tender-researchers framer) ----
