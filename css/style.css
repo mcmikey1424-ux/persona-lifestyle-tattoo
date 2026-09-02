@@ -232,7 +232,7 @@ body.body--green { background-color: var(--green); }
 .orbit__tilt {
   position: absolute; left: 50%; top: 50%;
   width: 0; height: 0;
-  transform: translate(-45px, 42px) rotateX(-9deg) rotateY(5deg) rotateZ(-26deg);
+  transform: translate(0px, 42px) rotateX(-9deg) rotateY(0deg) rotateZ(-20deg);
   transform-style: preserve-3d;
 }
 .orbit__ring {
