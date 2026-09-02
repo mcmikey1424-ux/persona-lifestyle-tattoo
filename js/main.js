@@ -129,23 +129,39 @@ function scrambleOnEnter(el, opts) {
   });
 }
 
-/* ---------- Reload discipline ----------
-   Every load starts at the top and plays the FULL intro; scrolling is
-   locked until it completes. No restored mid-page positions, no
-   instant state-jumping, nothing to collide or crash. */
+/* ---------- Reload discipline (professional engine) ----------
+   Every load starts at the top (no restored mid-page state = nothing
+   to collide), but the wait is engineered:
+   - first visit: full cinematic intro
+   - reloads (same session): preloader skipped, intro fast-tracked
+   - any scroll input during the intro completes it instantly */
 if ("scrollRestoration" in history) history.scrollRestoration = "manual";
 window.scrollTo(0, 0);
 if (lenis) { lenis.scrollTo(0, { immediate: true }); lenis.stop(); }
 document.documentElement.style.overflow = "hidden"; /* belt for keyboard scroll */
+let seenBefore = false;
+try { seenBefore = sessionStorage.getItem("persona_seen") === "1"; sessionStorage.setItem("persona_seen", "1"); } catch (e) {}
 
 /* ---------- Preloader ---------- */
 const pre = document.getElementById("preloader");
-const introTl = gsap.timeline({
-  onComplete: () => {
-    document.documentElement.style.overflow = "";
-    if (lenis) lenis.start();
-    ScrollTrigger.refresh();
-  },
+let introLocked = true;
+function unlockScroll() {
+  if (!introLocked) return;
+  introLocked = false;
+  document.documentElement.style.overflow = "";
+  if (lenis) lenis.start();
+  ScrollTrigger.refresh();
+}
+const introTl = gsap.timeline({ onComplete: unlockScroll });
+/* scroll input fast-forwards the intro instead of being swallowed */
+function skipIntro() {
+  if (!introLocked) return;
+  introTl.progress(1); /* fires onComplete -> unlock */
+}
+window.addEventListener("wheel", skipIntro, { passive: true });
+window.addEventListener("touchmove", skipIntro, { passive: true });
+window.addEventListener("keydown", (e) => {
+  if (["ArrowDown", "PageDown", "Space", " ", "End"].includes(e.key)) skipIntro();
 });
 introTl
   .to(".preloader__bar span", { scaleX: 1, duration: 0.9, ease: "power2.inOut" })
@@ -185,6 +201,14 @@ introTl
     "-=0.6"
   )
   ;
+
+
+/* reload fast-track: no preloader bar, intro at 2.4x */
+if (seenBefore) {
+  introTl.timeScale(2.4);
+  gsap.set(pre, { display: "none" });
+  introTl.seek(1.75); /* jump past the preloader beats */
+}
 
 /* ---------- Hero shrink into nav ---------- */
 const heroWord = document.getElementById("heroWord");
