@@ -154,7 +154,6 @@ body.body--green { background-color: var(--green); }
   line-height: 1.1;
   font-weight: 300;
   max-width: 40vw;
-  mix-blend-mode: difference;
   transform-origin: left bottom;
 }
 .hero__tagline sup { font-size: 0.4em; }
