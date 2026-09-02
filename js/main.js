@@ -339,11 +339,11 @@ const PORTRAIT_CDN = "https://cdn.jsdelivr.net/gh/mcmikey1424-ux/persona-lifesty
    at a different distance, so a uniform height gave mismatched "FOV" */
 const PORTRAIT_LIST = [
   ["alfrey-cut.png", 95.5, "ALFREY", "@ALFREYTATTOO"],
-  ["friend-2.png", 88.6, "EMELYN", "@LETTERBEFORE.N"],
-  ["friend-3.png", 89.6, "BREANNA", "@BREANNX_"],
-  ["friend-4.png", 98.5, "JARED", "@PRETTY5TRANGE"],
-  ["friend-5.png", 87, "BERNICE", "@BERTATTOOIST"],
-  ["friend-6.png", 88.5, "JAE", "@CRYINGBAPHOMET"],
+  ["friend-2.png", 95.5, "EMELYN", "@LETTERBEFORE.N"],
+  ["friend-3.png", 95.5, "BREANNA", "@BREANNX_"],
+  ["friend-4.png", 95.5, "JARED", "@PRETTY5TRANGE"],
+  ["friend-5.png", 95.5, "BERNICE", "@BERTATTOOIST"],
+  ["friend-6.png", 95.5, "JAE", "@CRYINGBAPHOMET"],
 ];
 const PORTRAITS = PORTRAIT_LIST.map(([f]) => PORTRAIT_CDN + f);
 const PORTRAIT_VH = PORTRAIT_LIST.map(([, vh]) => vh);
