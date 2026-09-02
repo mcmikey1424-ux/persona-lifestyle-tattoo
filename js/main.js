@@ -248,7 +248,7 @@ if (orbitImgA && orbitImgB && !reduceMotion) {
     };
     if (back.complete && back.naturalWidth) show();
     else back.onload = show;
-  }, 8500);
+  }, 5000);
 }
 
 /* Nav links appear once the morph completes. The fixed morphing wordmark
