@@ -171,6 +171,15 @@ introTl
   )
   ;
 
+/* Mid-page reload: the browser restores scroll, so skip the intro
+   choreography entirely and land everything in its finished state
+   (otherwise the fixed portrait/orbit replays over section 2+). */
+if ((window.scrollY || document.documentElement.scrollTop) > window.innerHeight * 0.4) {
+  introTl.progress(1).kill();
+  gsap.set("#orbit", { opacity: 0 });
+  gsap.set(pre, { display: "none" });
+}
+
 /* ---------- Hero shrink into nav ---------- */
 const heroWord = document.getElementById("heroWord");
 const navLogo = document.getElementById("navLogo");
