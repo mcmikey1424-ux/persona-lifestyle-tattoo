@@ -837,6 +837,10 @@ motionTl
   gsap.fromTo("#tunnelViewport", { autoAlpha: 0 },
     { autoAlpha: 1, ease: "none", immediateRender: true,
       scrollTrigger: { trigger: "#tunnel", start: "top bottom+=70%", end: "top bottom-=10%", scrub: 0.5 } });
+  /* iris dissolves as the tunnel reaches full size */
+  gsap.fromTo("#tunnelIris", { opacity: 1 },
+    { opacity: 0, ease: "power1.in", immediateRender: true,
+      scrollTrigger: { trigger: "#tunnel", start: "top bottom-=20%", end: "top top", scrub: 0.5 } });
   gsap.fromTo("#tunnelViewport",
     { yPercent: 0 },
     { yPercent: -100, ease: "none", immediateRender: false,

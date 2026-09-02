@@ -335,6 +335,12 @@ body.body--green { background-color: var(--green); }
   pointer-events: none; user-select: none;
 }
 .tunnel__bar { position: absolute; pointer-events: none; }
+.tunnel__iris {
+  /* entrance mask: only a soft circular core shows while the tunnel is
+     small, so no hard box edges pop; dissolves at full size */
+  position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(circle at 50% 50%, transparent 0%, rgba(0,0,0,0.55) 16%, #000 34%);
+}
 .tunnel__vignette {
   position: absolute; inset: 0; pointer-events: none;
   background: radial-gradient(circle at 50% 50%, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0) 20%);
