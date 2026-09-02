@@ -274,7 +274,8 @@ gsap.timeline({
     invalidateOnRefresh: true,
   },
 })
-  .to(heroWord, { scale: () => heroScale(), top: 20, ease: "power1.inOut", force3D: true }, 0)
+  /* the heading morphs slightly ahead of the rest (finishes ~16% earlier) */
+  .to(heroWord, { scale: () => heroScale(), top: 20, ease: "power1.inOut", force3D: true, duration: 0.42 }, 0)
   /* side clusters SLIDE fully off their own sides for the exit (no fade
      doing the work - the slide is the exit); portrait untouched */
   .to("#heroTagline", { x: () => -window.innerWidth * 0.85, ease: "power1.in" }, 0)
