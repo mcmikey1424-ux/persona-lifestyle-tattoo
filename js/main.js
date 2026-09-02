@@ -861,12 +861,12 @@ motionTl
   window.__tunnelEnter = tunnelEnter;
   gsap.fromTo(tunnelEnter, { s: 0 },
     { s: 1, ease: "none", immediateRender: true,
-      scrollTrigger: { trigger: "#tunnel", start: "top bottom-=25%", end: "top top", scrub: 0.4 } });
+      scrollTrigger: { trigger: "#tunnel", start: "top bottom-=25%", end: "top 25%", scrub: 0.4 } });
   /* the entrance IS the zoom: big scale travel, alpha snaps in early
      so it never reads as a fade */
   gsap.fromTo("#tunnelViewport", { scale: 0.42, transformOrigin: "50% 50%" },
     { scale: 1.08, ease: "power1.in", immediateRender: true, force3D: true,
-      scrollTrigger: { trigger: "#tunnel", start: "top bottom-=25%", end: "top top", scrub: 0.4 } });
+      scrollTrigger: { trigger: "#tunnel", start: "top bottom-=25%", end: "top 25%", scrub: 0.4 } });
   /* alpha tracks the whole zoom with an ease-in: near-invisible while
      the frozen frame is small (it reads boxy), fully there once it
      reads as a corridor */
