@@ -202,10 +202,10 @@ body.body--green { background-color: var(--green); }
   white-space: nowrap;
   will-change: transform;
 }
-.motion__row--1 { top: 26%; }
-.motion__row--2 { top: 47%; }
+.motion__row--1 { top: 22.5%; }
+.motion__row--2 { top: 50.5%; }
 .motion__caption {
-  position: absolute; top: 46%; left: 50%;
+  position: absolute; top: 46.5%; left: 50%;
   transform: translate(-50%, -50%);
   text-align: center;
 }
