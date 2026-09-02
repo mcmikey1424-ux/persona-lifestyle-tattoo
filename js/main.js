@@ -196,7 +196,12 @@ gsap.timeline({
   /* explicit from-value: with invalidateOnRefresh, a refresh mid-intro
      (orbit still hidden) would otherwise capture opacity 0 as the start
      and pin the orbit invisible */
-  .fromTo("#orbit", { opacity: 1 }, { opacity: 0, ease: "none", duration: 0.35, immediateRender: false }, 0);
+  /* portrait + ring dolly-zoom exit: recedes into depth, softening as it goes */
+  .fromTo("#orbit",
+    { opacity: 1, scale: 1, yPercent: 0, filter: "blur(0px)" },
+    { opacity: 0, scale: 0.45, yPercent: 7, filter: "blur(7px)",
+      transformOrigin: "50% 62%", ease: "power1.in", duration: 0.55, immediateRender: false },
+    0);
 
 /* ---------- Typography orbit (reference: tender-researchers framer) ----
    Exact system from the reference DOM: each character is its own div at
