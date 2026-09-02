@@ -227,6 +227,9 @@ body.body--green { background-color: var(--green); }
   height: 92vh; width: auto; /* trimmed cutouts: head tops align at 8vh */
   transform: translateX(-50%) translateZ(0);
   user-select: none;
+  /* reference: torso dissolves into the ground before it ends */
+  -webkit-mask-image: linear-gradient(to bottom, black 62%, transparent 91%);
+  mask-image: linear-gradient(to bottom, black 62%, transparent 91%);
 }
 .orbit__img--b { opacity: 0; }
 .orbit__tilt {
