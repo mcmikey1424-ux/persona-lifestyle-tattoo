@@ -310,9 +310,13 @@ body.body--green { background-color: var(--green); }
   color: var(--ink);
 }
 /* ============ INFINITE IMAGE TUNNEL (Framer port) ============ */
-.tunnel { position: relative; height: 100vh; background: var(--bg); }
+.tunnel { position: relative; height: 280vh; background: var(--bg); }
 .tunnel__viewport {
-  position: absolute; inset: 0; overflow: hidden;
+  /* fixed: the tunnel zooms in from scale 0 at dead center, never
+     riding up with the page */
+  position: fixed; inset: 0; overflow: hidden;
+  z-index: 40;
+  will-change: transform;
   background: #000000;
   perspective: 1800px;
   perspective-origin: 50% 50%;

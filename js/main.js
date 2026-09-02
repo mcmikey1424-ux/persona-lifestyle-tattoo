@@ -386,7 +386,7 @@ const motionTl = gsap.timeline({
   scrollTrigger: {
     trigger: "#motion",
     start: "top top",
-    end: "+=160%",
+    end: "+=220%",
     scrub: 0.8,
     pin: "#motionStage",
     anticipatePin: 1,
@@ -571,8 +571,8 @@ motionTl
     lerped += (glassProgress.p - lerped) * damping;
     /* unfold across the first 82%% of the pin; the last 18%% SHATTERS the
        settled grid like glass */
-    const unfoldP = Math.min(1, lerped / 0.82);
-    const shatter = Math.max(0, Math.min(1, (lerped - 0.84) / 0.16));
+    const unfoldP = Math.min(1, lerped / 0.6);
+    const shatter = Math.max(0, Math.min(1, (lerped - 0.62) / 0.38));
     const u = 1 - unfoldP;
 
     if (glassProgress.p === 0) {
@@ -622,7 +622,7 @@ motionTl
         const j = sd - Math.floor(sd);
         const dirX = fc.flatPos[0] * 1.6 + (j - 0.5) * 2.5;
         const dirY = fc.flatPos[1] * 1.6 + (j * 7 % 1 - 0.5) * 2.5;
-        const sEase = shatter * shatter;
+        const sEase = shatter * shatter * 0.75;
         mesh.position.x += dirX * sEase * 3;
         mesh.position.y += dirY * sEase * 3;
         mesh.position.z += (j - 0.3) * sEase * 8;
@@ -821,8 +821,20 @@ motionTl
   new IntersectionObserver(function (es) {
     visible = !!(es[0] && es[0].isIntersecting);
     if (visible && !document.hidden) start(); else stop();
-  }, { threshold: 0 }).observe(viewport);
+  }, { threshold: 0 }).observe(document.getElementById("tunnel"));
   document.addEventListener("visibilitychange", function () { if (document.hidden) stop(); else if (visible) start(); });
+
+  /* entrance: the viewport is FIXED and zooms in from scale 0 dead
+     center over the shattering grid (it never rides up); once the
+     tunnel stretch is scrolled through, it slides away with the flow */
+  gsap.fromTo("#tunnelViewport",
+    { scale: 0, autoAlpha: 0, transformOrigin: "50% 50%" },
+    { scale: 1, autoAlpha: 1, ease: "none", immediateRender: true,
+      scrollTrigger: { trigger: "#tunnel", start: "top bottom", end: "top top", scrub: 0.5 } });
+  gsap.fromTo("#tunnelViewport",
+    { yPercent: 0 },
+    { yPercent: -100, ease: "none", immediateRender: false,
+      scrollTrigger: { trigger: "#tunnel", start: "bottom bottom", end: "bottom top", scrub: 0.5 } });
 })();
 
 /* ---------- Mosaic: scattered tiles assemble ---------- */
