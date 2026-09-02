@@ -150,10 +150,10 @@ body.body--green { background-color: var(--green); }
   flex-wrap: wrap;
 }
 .hero__tagline {
-  font-size: clamp(28px, 4.44vw, 70px);
+  font-size: clamp(24px, 3.6vw, 58px);
   line-height: 1.1;
   font-weight: 300;
-  max-width: 40vw;
+  max-width: 26vw; /* clear of the centered portrait */
   transform-origin: left bottom;
 }
 .hero__tagline sup { font-size: 0.4em; }
@@ -224,7 +224,7 @@ body.body--green { background-color: var(--green); }
 }
 .orbit__img {
   position: absolute; left: 50%; bottom: 0;
-  height: 92vh; width: auto; /* trimmed cutouts: head tops align at 8vh */
+  height: 97vh; width: auto; /* trimmed cutouts: head tops align at 8vh */
   transform: translateX(-50%) translateZ(0);
   user-select: none;
   /* reference: torso dissolves into the ground before it ends */
@@ -254,7 +254,7 @@ body.body--green { background-color: var(--green); }
 @media (max-width: 900px) {
   .orbit { --orbR: 34vw; }
   .orbit__ch { font-size: calc(34vw * 0.1303); letter-spacing: 0.17em; }
-  .orbit__img { height: 74vh; }
+  .orbit__img { height: 78vh; }
 }
 
 /* ============ GETLAYERS SYSTEMS ============ */
