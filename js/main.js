@@ -176,7 +176,10 @@ gsap.timeline({
   .to("#heroTagline", { scale: 0.6, opacity: 0, yPercent: -40, ease: "none" }, 0)
   .to("#heroHint", { opacity: 0, ease: "none", duration: 0.25 }, 0)
   .to("#heroMono", { opacity: 0, yPercent: -60, ease: "none" }, 0)
-  .to("#orbit", { opacity: 0, ease: "none", duration: 0.35 }, 0);
+  /* explicit from-value: with invalidateOnRefresh, a refresh mid-intro
+     (orbit still hidden) would otherwise capture opacity 0 as the start
+     and pin the orbit invisible */
+  .fromTo("#orbit", { opacity: 1 }, { opacity: 0, ease: "none", duration: 0.35, immediateRender: false }, 0);
 
 /* ---------- Typography orbit (reference: tender-researchers framer) ----
    Exact system from the reference DOM: each character is its own div at
@@ -187,7 +190,7 @@ gsap.timeline({
    mirrored text at the back is part of the look); the cutout portrait
    sits at z=0 in the same 3D context so the ring passes in front of and
    behind him. */
-const ORBIT_TEXT = "INK THAT LIVES WITH YOU. WHERE STREET-CULTURE AUTHENTICITY MEETS LIFETIME TATTOO ARTISTRY. ";
+const ORBIT_TEXT = "MEET ALFREY ✦ RESIDENT ARTIST ✦ MEET ALFREY ✦ 27A HAJI LANE SINGAPORE ✦ @ALFREYTATTOO ✦ ";
 const orbitRing = document.getElementById("orbitRing");
 if (orbitRing) {
   const N = ORBIT_TEXT.length;
