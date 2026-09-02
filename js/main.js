@@ -203,6 +203,15 @@ gsap.timeline({
     { opacity: 0, scale: 0.02,
       transformOrigin: "50% 58%", ease: "power1.inOut", duration: 0.42,
       force3D: true, immediateRender: false },
+    0)
+  /* counter-drift: cancel the page scroll during the shrink so the
+     portrait stays put on screen and only zooms down to nothing.
+     (timeline total = 0.5, hero range = 72% of viewport, tween covers
+     0.42/0.5 of it — linear, matching the scrub) */
+  .fromTo("#orbit",
+    { y: 0 },
+    { y: () => window.innerHeight * 0.72 * (0.42 / 0.5),
+      ease: "none", duration: 0.42, immediateRender: false },
     0);
 
 /* ---------- Typography orbit (reference: tender-researchers framer) ----
