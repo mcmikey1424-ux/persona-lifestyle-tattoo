@@ -193,7 +193,7 @@ gsap.timeline({
     trigger: "#hero",
     start: "top top",
     end: "100% top",
-    scrub: 0.7,
+    scrub: 0.25,
     invalidateOnRefresh: true,
   },
 })
@@ -209,7 +209,7 @@ gsap.timeline({
   .fromTo("#orbit",
     { opacity: 1, scale: 1 },
     { opacity: 0, scale: 0.02,
-      transformOrigin: "50% 58%", ease: "power1.inOut", duration: 0.42,
+      transformOrigin: "50% 58%", ease: "power1.inOut", duration: 0.32,
       force3D: true, immediateRender: false },
     0);
 
@@ -290,6 +290,16 @@ if (orbitImgA && !reduceMotion) {
     });
   }, 5000);
 }
+
+/* HARD GATE: the fixed portrait layer is forcibly hidden the moment
+   the motion section reaches the viewport top, instantly, regardless
+   of scrub lag or scroll speed - and restored when scrolling back. */
+ScrollTrigger.create({
+  trigger: "#motion",
+  start: "top 25%",
+  onEnter: () => gsap.set("#orbit", { visibility: "hidden" }),
+  onLeaveBack: () => gsap.set("#orbit", { visibility: "visible" }),
+});
 
 /* Nav links appear once the morph completes. The fixed morphing wordmark
    itself stays as the permanent logo (no swap — no end-of-shrink flicker);
@@ -851,16 +861,23 @@ motionTl
   window.__tunnelEnter = tunnelEnter;
   gsap.fromTo(tunnelEnter, { s: 0 },
     { s: 1, ease: "none", immediateRender: true,
-      scrollTrigger: { trigger: "#tunnel", start: "top bottom+=70%", end: "top top", scrub: 0.5 } });
-  gsap.fromTo("#tunnelViewport", { scale: 0.001, transformOrigin: "50% 50%" },
+      scrollTrigger: { trigger: "#tunnel", start: "top bottom-=25%", end: "top top", scrub: 0.4 } });
+  /* zoom runs 0.7 -> 1.08: the tiny boxy state never exists on screen */
+  gsap.fromTo("#tunnelViewport", { scale: 0.7, transformOrigin: "50% 50%" },
     { scale: 1.08, ease: "none", immediateRender: true, force3D: true,
-      scrollTrigger: { trigger: "#tunnel", start: "top bottom+=70%", end: "top top", scrub: 0.5 } });
+      scrollTrigger: { trigger: "#tunnel", start: "top bottom-=25%", end: "top top", scrub: 0.4 } });
   /* alpha tracks the whole zoom with an ease-in: near-invisible while
      the frozen frame is small (it reads boxy), fully there once it
      reads as a corridor */
+  ScrollTrigger.create({
+    trigger: "#tunnel",
+    start: "top bottom-=25%",
+    onLeaveBack: () => gsap.set("#tunnelViewport", { visibility: "hidden" }),
+    onEnter: () => gsap.set("#tunnelViewport", { visibility: "inherit" }),
+  });
   gsap.fromTo("#tunnelViewport", { autoAlpha: 0 },
-    { autoAlpha: 1, ease: "power2.in", immediateRender: true,
-      scrollTrigger: { trigger: "#tunnel", start: "top bottom+=70%", end: "top top", scrub: 0.5 } });
+    { autoAlpha: 1, ease: "power1.in", immediateRender: true,
+      scrollTrigger: { trigger: "#tunnel", start: "top bottom-=25%", end: "top top", scrub: 0.4 } });
 
   gsap.fromTo("#tunnelViewport",
     { yPercent: 0 },
