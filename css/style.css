@@ -140,6 +140,16 @@ body.body--green { background-color: var(--green); }
   font-size: 10px;
   opacity: 0;
 }
+.hero__tag {
+  /* side tags, set in the mono list style (ink-colored) */
+  position: absolute; top: 34%;
+  color: var(--ink);
+  font-weight: 500;
+  opacity: 0; /* intro reveals */
+  z-index: 2;
+}
+.hero__tag--l { left: 5.5vw; }
+.hero__tag--r { right: 5.5vw; }
 .hero__row {
   margin-top: auto;
   margin-bottom: 10vh;

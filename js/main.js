@@ -207,6 +207,8 @@ introTl
     { yPercent: 0, opacity: 1, filter: "blur(0px)", duration: 0.9, stagger: 0.055, ease: "power3.out" },
     "-=0.75"
   )
+  /* side tags fade in */
+  .to(".hero__tag", { opacity: 1, duration: 0.7, stagger: 0.1, ease: "power2.out" }, "-=0.6")
   /* mono paragraph: masked line rise */
   .fromTo(
     "#heroMono .line",
@@ -245,6 +247,8 @@ gsap.timeline({
   /* text blocks sweep OUT to their own sides on scroll (portrait untouched) */
   .to("#heroTagline", { x: () => -window.innerWidth * 0.6, opacity: 0, ease: "power1.in" }, 0)
   .to("#heroMono", { x: () => window.innerWidth * 0.6, opacity: 0, ease: "power1.in" }, 0)
+  .to(".hero__tag--l", { x: () => -window.innerWidth * 0.4, opacity: 0, ease: "power1.in" }, 0)
+  .to(".hero__tag--r", { x: () => window.innerWidth * 0.4, opacity: 0, ease: "power1.in" }, 0)
   /* explicit from-value: with invalidateOnRefresh, a refresh mid-intro
      (orbit still hidden) would otherwise capture opacity 0 as the start
      and pin the orbit invisible */
