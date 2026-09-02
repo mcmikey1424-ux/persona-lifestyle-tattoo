@@ -820,9 +820,10 @@ motionTl
   const DEPTH_SPAN_SCALE = 2.2, BOOST_MAX = 2.6, BOOST_EASE = 1.4;
   const DEPTH = 5000, SPEED = 1, TILE_SCALE = 1, TILE_GAP = 12;
   const GRID_LINE = "rgba(255, 255, 255, 0.04)", GRID_T = 1;
-  const IMAGES = [
-    "work-irezumi", "work-blackwork", "work-realism", "work-neotrad",
-  ].map(function (f) { return "https://cdn.jsdelivr.net/gh/mcmikey1424-ux/persona-lifestyle-tattoo@master/assets/" + f + ".jpg"; });
+  /* the full 40-shot portfolio set - every tile gets its own image */
+  const IMAGES = Array.from({ length: 40 }, function (_, i) {
+    return "https://cdn.jsdelivr.net/gh/mcmikey1424-ux/persona-lifestyle-tattoo@master/assets/tunnel-" + String(i + 1).padStart(2, "0") + ".jpg";
+  });
 
   function surfaceTransform(surface, geo, offset) {
     switch (surface) {
@@ -892,7 +893,7 @@ motionTl
       el.className = "tunnel__tile";
       el.style.cssText = "width:" + tw + "px;height:" + th + "px;margin-left:" + -tw / 2 + "px;margin-top:" + -th / 2 + "px";
       const img = document.createElement("img");
-      img.src = IMAGES[idx % IMAGES.length];
+      img.src = IMAGES[tileEls.length % IMAGES.length]; /* sequential: all 40 appear */
       img.draggable = false; img.loading = "lazy"; img.decoding = "async";
       img.crossOrigin = "anonymous";
       el.appendChild(img);
