@@ -1,5 +1,5 @@
 /* PERSONA LIFESTYLE TATTOO — motion system */
-gsap.registerPlugin(ScrollTrigger, MotionPathPlugin);
+gsap.registerPlugin(ScrollTrigger);
 
 const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
