@@ -275,13 +275,14 @@ gsap.timeline({
   },
 })
   .to(heroWord, { scale: () => heroScale(), top: 20, ease: "power1.inOut", force3D: true }, 0)
-  /* text blocks sweep OUT to their own sides on scroll (portrait untouched) */
-  .to("#heroTagline", { x: () => -window.innerWidth * 0.6, opacity: 0, ease: "power1.in" }, 0)
-  .to("#heroMono", { x: () => window.innerWidth * 0.6, opacity: 0, ease: "power1.in" }, 0)
-  /* explicit start opacity: without it the tween captures the pre-intro
-     hidden state and scrolling back up restores the tags to invisible */
-  .fromTo(".hero__tag--l", { x: 0, opacity: 1 }, { x: () => -window.innerWidth * 0.4, opacity: 0, ease: "power1.in", immediateRender: false }, 0)
-  .fromTo(".hero__tag--r", { x: 0, opacity: 1 }, { x: () => window.innerWidth * 0.4, opacity: 0, ease: "power1.in", immediateRender: false }, 0)
+  /* side clusters SLIDE fully off their own sides for the exit (no fade
+     doing the work - the slide is the exit); portrait untouched */
+  .to("#heroTagline", { x: () => -window.innerWidth * 0.85, ease: "power1.in" }, 0)
+  .to("#heroMono", { x: () => window.innerWidth * 0.85, ease: "power1.in" }, 0)
+  /* explicit start values: a captured pre-intro hidden state must never
+     be restored when scrolling back up */
+  .fromTo(".hero__tag--l", { x: 0, opacity: 1 }, { x: () => -window.innerWidth * 0.6, ease: "power1.in", immediateRender: false }, 0)
+  .fromTo(".hero__tag--r", { x: 0, opacity: 1 }, { x: () => window.innerWidth * 0.6, ease: "power1.in", immediateRender: false }, 0)
   /* explicit from-value: with invalidateOnRefresh, a refresh mid-intro
      (orbit still hidden) would otherwise capture opacity 0 as the start
      and pin the orbit invisible */
