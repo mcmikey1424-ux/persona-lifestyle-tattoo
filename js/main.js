@@ -1092,7 +1092,10 @@ tiles.forEach(({ el, c, r }, i) => {
   );
 });
 /* tiles assembled -> dissolve into the playing reel (same box) */
-mosaicTl.fromTo("#mosaicVideo", { opacity: 0 }, { opacity: 1, duration: 0.25, ease: "none", immediateRender: false }, 0.72);
+mosaicTl.fromTo("#mosaicVideo", { opacity: 0 }, {
+  opacity: 1, duration: 0.25, ease: "none", immediateRender: false,
+  onStart: () => { const v = document.getElementById("mosaicVideo"); if (v && v.paused) v.play().catch(() => {}); },
+}, 0.72);
 mosaicTl.to("#mosaicTiles", { opacity: 0, duration: 0.25, ease: "none" }, 0.72);
 mosaicTl.fromTo(
   ".mosaic__overlay > *",
