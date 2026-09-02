@@ -211,12 +211,11 @@ body.body--green { background-color: var(--green); }
   text-align: center; gap: 20px;
   pointer-events: none;
 }
-.mosaic__word {
-  font-size: clamp(48px, 9vw, 150px);
-  letter-spacing: 0.08em; font-weight: 400;
+.mosaic__caption {
+  color: var(--ink);
   mix-blend-mode: difference;
+  font-size: clamp(14px, 1.3vw, 19px);
 }
-.mosaic__caption { color: var(--ink); mix-blend-mode: difference; }
 .mosaic__list {
   list-style: none;
   position: absolute; right: var(--pad); bottom: 12vh;
