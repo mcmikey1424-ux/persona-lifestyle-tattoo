@@ -853,7 +853,7 @@ motionTl
     { s: 1, ease: "none", immediateRender: true,
       scrollTrigger: { trigger: "#tunnel", start: "top bottom+=70%", end: "top top", scrub: 0.5 } });
   gsap.fromTo("#tunnelViewport", { scale: 0.001, transformOrigin: "50% 50%" },
-    { scale: 1, ease: "none", immediateRender: true, force3D: true,
+    { scale: 1.08, ease: "none", immediateRender: true, force3D: true,
       scrollTrigger: { trigger: "#tunnel", start: "top bottom+=70%", end: "top top", scrub: 0.5 } });
   gsap.fromTo("#tunnelViewport", { autoAlpha: 0 },
     { autoAlpha: 1, ease: "none", immediateRender: true,
