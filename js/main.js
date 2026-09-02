@@ -928,13 +928,13 @@ motionTl
     const fadeStart = DEPTH * 0.72, fadeSpan = DEPTH * 0.28;
     for (let i = 0; i < tileEls.length; i++) {
       let z = tileZ[i] - delta; const NEAR = -Math.max(200, geo.halfWidth * 0.4);
-      if (z < NEAR) z += DEPTH; tileZ[i] = z;
+      if (z < NEAR) z += DEPTH; else if (z > DEPTH + NEAR) z -= DEPTH; tileZ[i] = z;
       tileEls[i].style.transform = "translate3d(0px, 0px, " + -z + "px) " + baseTransforms[i];
       tileEls[i].style.opacity = z > fadeStart ? String(Math.max(0, Math.min(1, 1 - (z - fadeStart) / fadeSpan))) : "1";
     }
     for (let i = 0; i < frameEls.length; i++) {
       let z = frameZ[i] - delta; const NEAR = -Math.max(200, geo.halfWidth * 0.4);
-      if (z < NEAR) z += DEPTH; frameZ[i] = z;
+      if (z < NEAR) z += DEPTH; else if (z > DEPTH + NEAR) z -= DEPTH; frameZ[i] = z;
       frameEls[i].style.transform = "translate3d(0px, 0px, " + -z + "px)";
       frameEls[i].style.opacity = z > fadeStart ? String(Math.max(0, Math.min(1, 1 - (z - fadeStart) / fadeSpan))) : "1";
     }
@@ -943,6 +943,7 @@ motionTl
 
   /* loop (verbatim math: ramp, boost, wrap, far fade) */
   let ramp = 0, boost = 1, lastT = 0, running = false, rafId = 0, visible = false;
+  let lastScrollY = null, scrollVel = 0;
   function tick(time) {
     if (!running) return;
     const last = lastT || time; lastT = time;
@@ -952,13 +953,17 @@ motionTl
     const idle = 0.035;
     const factor = idle + (1 - idle) * ramp;
     const NEAR = -Math.max(200, geo.halfWidth * 0.4);
-    const delta = 320 * SPEED * factor * boost * dt;
+    /* scroll-driven: idle = auto travel (values unchanged); scrolling
+       adds lerped travel in the scroll direction, reverse included */
+    const sy = window.scrollY || 0;
+    if (lastScrollY === null) lastScrollY = sy;
+    scrollVel += ((sy - lastScrollY) - scrollVel) * Math.min(1, dt * 8);
+    lastScrollY = sy;
+    const delta = 320 * SPEED * factor * boost * dt + scrollVel * 1.4;
     ptr.x += (ptrTarget.x - ptr.x) * Math.min(1, dt * 3);
     ptr.y += (ptrTarget.y - ptr.y) * Math.min(1, dt * 3);
-    /* during the entrance the interior is FROZEN (a static raster scales
-       flicker-free); travel + parallax only run once the zoom lands */
-    const es = window.__tunnelEnter ? window.__tunnelEnter.s : 1;
-    if (es < 0.97) { rafId = requestAnimationFrame(tick); return; }
+    /* the corridor is ALIVE at every zoom stage - travel and parallax
+       run during the entrance too (per request), same guards apply */
     sceneEl.style.transform = "rotateY(" + ptr.x * 7 + "deg) rotateX(" + (-ptr.y * 5) + "deg)";
     applyPositions(delta);
     rafId = requestAnimationFrame(tick);
