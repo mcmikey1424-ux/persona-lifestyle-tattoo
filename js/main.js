@@ -245,12 +245,12 @@ const PORTRAIT_CDN = "https://cdn.jsdelivr.net/gh/mcmikey1424-ux/persona-lifesty
 /* per-portrait height (vh): equalizes face scale — each photo was shot
    at a different distance, so a uniform height gave mismatched "FOV" */
 const PORTRAIT_LIST = [
-  ["alfrey-cut.png", 91, "ALFREY", "@ALFREYTATTOO"],
-  ["friend-2.png", 84.4, "EMELYN", "@LETTERBEFORE.N"],
-  ["friend-3.png", 85.3, "BREANNA", "@BREANNX_"],
-  ["friend-4.png", 98.3, "JARED", "@PRETTY5TRANGE"],
-  ["friend-5.png", 71.3, "BERNICE", "@BERTATTOOIST"],
-  ["friend-6.png", 84.3, "JAE", "@CRYINGBAPHOMET"],
+  ["alfrey-cut.png", 95.5, "ALFREY", "@ALFREYTATTOO"],
+  ["friend-2.png", 88.6, "EMELYN", "@LETTERBEFORE.N"],
+  ["friend-3.png", 89.6, "BREANNA", "@BREANNX_"],
+  ["friend-4.png", 98.5, "JARED", "@PRETTY5TRANGE"],
+  ["friend-5.png", 74.9, "BERNICE", "@BERTATTOOIST"],
+  ["friend-6.png", 88.5, "JAE", "@CRYINGBAPHOMET"],
 ];
 const PORTRAITS = PORTRAIT_LIST.map(([f]) => PORTRAIT_CDN + f);
 const PORTRAIT_VH = PORTRAIT_LIST.map(([, vh]) => vh);

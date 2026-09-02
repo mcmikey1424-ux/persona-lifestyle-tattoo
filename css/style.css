@@ -224,7 +224,7 @@ body.body--green { background-color: var(--green); }
 }
 .orbit__img {
   position: absolute; left: 50%; bottom: 0;
-  height: 91vh; width: auto; /* trimmed cutouts: head tops align at 8vh */
+  height: 95.5vh; width: auto; /* trimmed cutouts: head tops align at 8vh */
   transform: translateX(-50%) translateZ(0);
   user-select: none;
   /* reference: torso dissolves into the ground before it ends */
