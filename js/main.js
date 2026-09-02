@@ -261,6 +261,68 @@ heroWord.addEventListener("click", () => {
   else window.scrollTo({ top: 0, behavior: "smooth" });
 });
 
+/* ---------- Ink in Motion: crossing headings + arc carousel ----------
+   Choreography (mirroring the reference, directions per spec):
+   after the wordmark docks, row 1 rides in from the RIGHT, row 2 from
+   the LEFT; they cross mid-section and exit the opposite sides while a
+   curved band of work shots sweeps up from the bottom, over the
+   headings, and away off the top. Fully scrubbed and reversible. */
+const motionBand = document.getElementById("motionBand");
+const MOTION_IMGS = [
+  "work-irezumi", "work-blackwork", "work-realism",
+  "work-neotrad", "work-irezumi", "work-blackwork",
+];
+MOTION_IMGS.forEach((n) => {
+  const d = document.createElement("div");
+  d.className = "motion__card";
+  d.innerHTML = `<img loading="lazy" decoding="async" crossorigin="anonymous" src="https://cdn.jsdelivr.net/gh/mcmikey1424-ux/persona-lifestyle-tattoo@master/assets/${n}.jpg" alt="Studio work">`;
+  motionBand.appendChild(d);
+});
+
+/* bow the band: cards follow a parabolic arc, each tilted tangent to it */
+[...motionBand.children].forEach((card, i, arr) => {
+  const t = i / (arr.length - 1) - 0.5; /* -0.5 … 0.5 across the band */
+  gsap.set(card, { yPercent: t * t * 190 - 16, rotation: t * 24 });
+});
+
+const motionRow1 = document.getElementById("motionRow1");
+const motionRow2 = document.getElementById("motionRow2");
+
+const motionTl = gsap.timeline({
+  scrollTrigger: {
+    trigger: "#motion",
+    start: "top top",
+    end: "+=320%",
+    scrub: 0.8,
+    pin: "#motionStage",
+    anticipatePin: 1,
+    invalidateOnRefresh: true,
+  },
+});
+motionTl
+  /* row 1: enters from the right, exits left */
+  .fromTo(
+    motionRow1,
+    { x: () => window.innerWidth + 60 },
+    { x: () => -motionRow1.offsetWidth - 60, ease: "none", duration: 10 },
+    0
+  )
+  /* row 2: enters from the left, exits right — they cross mid-way */
+  .fromTo(
+    motionRow2,
+    { x: () => -motionRow2.offsetWidth - 60 },
+    { x: () => window.innerWidth + 60, ease: "none", duration: 10 },
+    0
+  )
+  /* arc band: rides from below the fold, sweeps over the crossing
+     headings, and exits off the top with a slow counter-roll */
+  .fromTo(
+    motionBand,
+    { y: () => window.innerHeight * 1.35, x: () => -window.innerWidth * 0.05, rotation: -9 },
+    { y: () => -window.innerHeight * 1.5, x: () => window.innerWidth * 0.04, rotation: 7, ease: "none", duration: 7 },
+    2.6
+  );
+
 /* ---------- Mosaic: scattered tiles assemble ---------- */
 const tilesWrap = document.getElementById("mosaicTiles");
 const COLS = 6, ROWS = 4;
