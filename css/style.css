@@ -196,7 +196,7 @@ body.body--green { background-color: var(--green); }
 .hero__mono { max-width: 300px; }
 .hero__reel { display: flex; flex-direction: column; gap: 10px; align-items: flex-end; }
 .hero__reel video {
-  height: 30vh; width: auto;
+  height: 37vh; width: auto;
   display: block;
   object-fit: cover;
 }
