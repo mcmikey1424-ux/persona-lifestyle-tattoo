@@ -148,11 +148,11 @@ introTl
     },
     "-=0.45"
   )
-  /* portrait + orbit: slide up from below the fold */
+  /* portrait + orbit: arrive close-up, then ZOOM OUT into place */
   .fromTo(
     "#orbit",
-    { yPercent: 18, opacity: 0 },
-    { yPercent: 0, opacity: 1, duration: 1.2, ease: "power3.out" },
+    { scale: 1.22, opacity: 0, transformOrigin: "50% 62%" },
+    { scale: 1, opacity: 1, duration: 1.35, ease: "power3.out" },
     "-=0.85"
   )
   /* tagline: per-word masked rise + blur */
@@ -196,11 +196,11 @@ gsap.timeline({
   /* explicit from-value: with invalidateOnRefresh, a refresh mid-intro
      (orbit still hidden) would otherwise capture opacity 0 as the start
      and pin the orbit invisible */
-  /* portrait + ring dolly-zoom exit: recedes into depth, softening as it goes */
+  /* black-hole exit: portrait + ring get sucked down to a point */
   .fromTo("#orbit",
-    { opacity: 1, scale: 1, yPercent: 0, filter: "blur(0px)" },
-    { opacity: 0, scale: 0.45, yPercent: 7, filter: "blur(7px)",
-      transformOrigin: "50% 62%", ease: "power1.in", duration: 0.55, immediateRender: false },
+    { opacity: 1, scale: 1, rotation: 0, filter: "blur(0px)" },
+    { opacity: 0, scale: 0.02, rotation: -14, filter: "blur(5px)",
+      transformOrigin: "50% 58%", ease: "power2.in", duration: 0.6, immediateRender: false },
     0);
 
 /* ---------- Typography orbit (reference: tender-researchers framer) ----
