@@ -231,7 +231,6 @@ body.body--green { background-color: var(--green); }
   -webkit-mask-image: linear-gradient(to bottom, black 62%, transparent 91%);
   mask-image: linear-gradient(to bottom, black 62%, transparent 91%);
 }
-.orbit__img--b { opacity: 0; }
 .orbit__tilt {
   position: absolute; left: 50%; top: 50%;
   width: 0; height: 0;

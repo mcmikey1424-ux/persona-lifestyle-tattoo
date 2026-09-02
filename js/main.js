@@ -214,13 +214,18 @@ gsap.timeline({
    mirrored text at the back is part of the look); the cutout portrait
    sits at z=0 in the same 3D context so the ring passes in front of and
    behind him. */
-const ORBIT_TEXT = "MEET ALFREY ✦ RESIDENT ARTIST ✦ MEET ALFREY ✦ 27A HAJI LANE SINGAPORE ✦ @ALFREYTATTOO ✦ ";
 const orbitRing = document.getElementById("orbitRing");
-if (orbitRing) {
-  const N = ORBIT_TEXT.length;
-  orbitRing.innerHTML = [...ORBIT_TEXT].map((ch, i) =>
+function orbitTextFor(name, handle) {
+  return `MEET ${name} ✦ RESIDENT ARTIST ✦ MEET ${name} ✦ 27A HAJI LANE SINGAPORE ✦ ${handle} ✦ `;
+}
+function buildRing(text) {
+  const N = text.length;
+  orbitRing.innerHTML = [...text].map((ch, i) =>
     `<div class="orbit__ch" style="transform:translate(-50%,-50%) rotateY(${(i * 360 / N).toFixed(4)}deg) translateZ(var(--orbR))">${ch === " " ? "&nbsp;" : ch}</div>`
   ).join("");
+}
+if (orbitRing) {
+  buildRing(orbitTextFor("ALFREY", "@ALFREYTATTOO"));
   /* scroll-driven spin: the ring turns with scroll, direction follows
      the scroll direction, smoothed with a light lerp for inertia */
   const ORBIT_DEG_PER_PX = 0.35;   /* scroll boost */
@@ -240,32 +245,41 @@ const PORTRAIT_CDN = "https://cdn.jsdelivr.net/gh/mcmikey1424-ux/persona-lifesty
 /* per-portrait height (vh): equalizes face scale — each photo was shot
    at a different distance, so a uniform height gave mismatched "FOV" */
 const PORTRAIT_LIST = [
-  ["alfrey-cut.png", 91],
-  ["friend-2.png", 84.4],
-  ["friend-3.png", 85.3],
-  ["friend-4.png", 98.3],
-  ["friend-5.png", 71.3],
-  ["friend-6.png", 84.3],
+  ["alfrey-cut.png", 91, "ALFREY", "@ALFREYTATTOO"],
+  ["friend-2.png", 84.4, "EMELYN", "@LETTERBEFORE.N"],
+  ["friend-3.png", 85.3, "BREANNA", "@BREANNX_"],
+  ["friend-4.png", 98.3, "JARED", "@PRETTY5TRANGE"],
+  ["friend-5.png", 71.3, "BERNICE", "@BERTATTOOIST"],
+  ["friend-6.png", 84.3, "JAE", "@CRYINGBAPHOMET"],
 ];
 const PORTRAITS = PORTRAIT_LIST.map(([f]) => PORTRAIT_CDN + f);
 const PORTRAIT_VH = PORTRAIT_LIST.map(([, vh]) => vh);
 const orbitImgA = document.getElementById("orbitImgA");
-const orbitImgB = document.getElementById("orbitImgB");
-if (orbitImgA && orbitImgB && !reduceMotion) {
+if (orbitImgA && !reduceMotion) {
   PORTRAITS.forEach((src) => { const i = new Image(); i.crossOrigin = "anonymous"; i.src = src; });
   let pIdx = 0;
-  let front = orbitImgA, back = orbitImgB;
   setInterval(() => {
     pIdx = (pIdx + 1) % PORTRAITS.length;
-    back.src = PORTRAITS[pIdx];
-    back.style.height = PORTRAIT_VH[pIdx] + "vh";
-    const show = () => {
-      gsap.to(back, { opacity: 1, duration: 0.9, ease: "power2.inOut" });
-      gsap.to(front, { opacity: 0, duration: 0.9, ease: "power2.inOut" });
-      [front, back] = [back, front];
-    };
-    if (back.complete && back.naturalWidth) show();
-    else back.onload = show;
+    const [, vh, name, handle] = PORTRAIT_LIST[pIdx];
+    /* sequential swap: fully out, swap, fully in — no double-exposure.
+       The ring element itself is never faded (opacity < 1 would kill
+       preserve-3d and flatten the ring); its flat char leaves fade. */
+    gsap.to(orbitImgA, { opacity: 0, duration: 0.45, ease: "power1.in" });
+    gsap.to(orbitRing.children, {
+      opacity: 0, duration: 0.45, ease: "power1.in",
+      onComplete: () => {
+        orbitImgA.src = PORTRAITS[pIdx];
+        orbitImgA.style.height = vh + "vh";
+        buildRing(orbitTextFor(name, handle));
+        gsap.set(orbitRing.children, { opacity: 0 });
+        const reveal = () => {
+          gsap.to(orbitImgA, { opacity: 1, duration: 0.5, ease: "power1.out" });
+          gsap.to(orbitRing.children, { opacity: 1, duration: 0.5, ease: "power1.out" });
+        };
+        if (orbitImgA.complete && orbitImgA.naturalWidth) reveal();
+        else orbitImgA.onload = reveal;
+      },
+    });
   }, 5000);
 }
 
