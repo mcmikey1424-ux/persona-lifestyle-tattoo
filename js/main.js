@@ -241,9 +241,8 @@ const navLogo = document.getElementById("navLogo");
    load / font-ready / resize. */
 gsap.set(".hero__tag--l, .hero__tag--r", { xPercent: -50 });
 function placeHeroTags() {
-  if (heroWord.classList.contains("glitching") || heroWord.textContent.replace(/\s/g, "") !== "PERSØNA") return;
   const masks = heroWord.querySelectorAll(".hl-mask");
-  if (masks.length < 2) return;
+  if (heroWord.classList.contains("glitching") || masks.length !== 7) return;
   const wordRect = heroWord.getBoundingClientRect();
   const sc = wordRect.width / (0.89 * window.innerWidth) || 1; /* morph scale */
   const baseLeft = 0.055 * window.innerWidth;                  /* unscaled heading left */
@@ -434,13 +433,11 @@ let wordRaf = null;
 let wordTimeout = null;
 let wordTarget = WORD_A; /* guard: re-fired hover events can't restart a scramble */
 
+const LOGO_HL = '<span class="hl-mask"><span class="hl hl--logo"><span class="logo-o" aria-hidden="true"></span></span></span>';
 function renderWord(text) {
   heroWord.innerHTML = text
     .split("")
-    .map(
-      (c) =>
-        `<span class="hl-mask"><span class="hl${c === "Ø" ? " oslash" : ""}">${c}</span></span>`
-    )
+    .map((c) => c === "Ø" ? LOGO_HL : `<span class="hl-mask"><span class="hl">${c}</span></span>`)
     .join("");
 }
 
@@ -469,7 +466,8 @@ function scrambleWordTo(target) {
     heroWord.innerHTML = Array.from({ length: len }, (_, i) => {
       if (i < reveal) {
         const t = target[i] || "";
-        return `<span class="hl-mask"><span class="hl${t === "Ø" ? " oslash" : ""}">${t}</span></span>`;
+        if (t === "Ø") return LOGO_HL;
+        return `<span class="hl-mask"><span class="hl">${t}</span></span>`;
       }
       const c = CODE_GLYPHS[(Math.random() * CODE_GLYPHS.length) | 0];
       const dx = (Math.random() * 8 - 4).toFixed(1);
