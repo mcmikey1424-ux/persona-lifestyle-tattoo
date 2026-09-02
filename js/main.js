@@ -632,6 +632,10 @@ motionTl
       }
       const targetOp = (1 - (1 - PHOTO_OPACITY) * u) * (1 - shatter);
       mat.opacity += (targetOp - mat.opacity) * glassDamping;
+      /* while shards overlap in flight, depth-written transparency makes
+         sorting pop per frame - draw them without depth writes */
+      const wantDW = shatter === 0;
+      if (mat.depthWrite !== wantDW) { mat.depthWrite = wantDW; mat.needsUpdate = true; }
       mat.color.setRGB(u, u, u);
       mat.emissive.setRGB(1 - u, 1 - u, 1 - u);
     }
@@ -709,12 +713,6 @@ motionTl
     tileEls = []; frameEls = []; baseTransforms = [];
     tileZ.length = 0; frameZ.length = 0;
 
-    /* far-end cap */
-    const cap = document.createElement("div");
-    cap.style.cssText = "position:absolute;left:50%;top:50%;width:" + geo.halfWidth * 2 + "px;height:" + geo.halfHeight * 2 +
-      "px;margin-left:" + -geo.halfWidth + "px;margin-top:" + -geo.halfHeight + "px;background:#000;transform:translate3d(0,0," + -DEPTH + "px)";
-    sceneEl.appendChild(cap);
-
     /* longitudinal surface lines (12, verbatim offsets) */
     [["left",-1],["left",-0.34],["left",0.34],["left",1],["right",-1],["right",-0.34],["right",0.34],["right",1],
      ["ceiling",-0.5],["ceiling",0.5],["floor",-0.5],["floor",0.5]].forEach(function (l) {
@@ -788,6 +786,24 @@ motionTl
   viewport.addEventListener("pointerdown", function () { hold = true; }, { passive: true });
   viewport.addEventListener("pointerup", function () { hold = false; }, { passive: true });
 
+  /* position writer, used by the loop and for the initial static paint */
+  function applyPositions(delta) {
+    const fadeStart = DEPTH * 0.72, fadeSpan = DEPTH * 0.28;
+    for (let i = 0; i < tileEls.length; i++) {
+      let z = tileZ[i] - delta; const NEAR = -Math.max(200, geo.halfWidth * 0.4);
+      if (z < NEAR) z += DEPTH; tileZ[i] = z;
+      tileEls[i].style.transform = "translate3d(0px, 0px, " + -z + "px) " + baseTransforms[i];
+      tileEls[i].style.opacity = z > fadeStart ? String(Math.max(0, Math.min(1, 1 - (z - fadeStart) / fadeSpan))) : "1";
+    }
+    for (let i = 0; i < frameEls.length; i++) {
+      let z = frameZ[i] - delta; const NEAR = -Math.max(200, geo.halfWidth * 0.4);
+      if (z < NEAR) z += DEPTH; frameZ[i] = z;
+      frameEls[i].style.transform = "translate3d(0px, 0px, " + -z + "px)";
+      frameEls[i].style.opacity = z > fadeStart ? String(Math.max(0, Math.min(1, 1 - (z - fadeStart) / fadeSpan))) : "1";
+    }
+  }
+  applyPositions(0); /* static first frame so the frozen entrance has content */
+
   /* loop (verbatim math: ramp, boost, wrap, far fade) */
   let ramp = 0, boost = 1, lastT = 0, running = false, rafId = 0, visible = false;
   function tick(time) {
@@ -802,23 +818,12 @@ motionTl
     const delta = 320 * SPEED * factor * boost * dt;
     ptr.x += (ptrTarget.x - ptr.x) * Math.min(1, dt * 3);
     ptr.y += (ptrTarget.y - ptr.y) * Math.min(1, dt * 3);
-    /* entrance = camera dolly: the whole world starts pushed deep and
-       travels forward (a world-SCALE here would drag near tiles onto
-       the camera plane and project giant rectangles) */
+    /* during the entrance the interior is FROZEN (a static raster scales
+       flicker-free); travel + parallax only run once the zoom lands */
     const es = window.__tunnelEnter ? window.__tunnelEnter.s : 1;
-    const tz = -(1 - es) * 4000;
-    sceneEl.style.transform = "translate3d(0px, 0px, " + tz + "px) rotateY(" + ptr.x * 7 + "deg) rotateX(" + (-ptr.y * 5) + "deg)";
-    const fadeStart = DEPTH * 0.72, fadeSpan = DEPTH * 0.28;
-    for (let i = 0; i < tileEls.length; i++) {
-      let z = tileZ[i] - delta; if (z < NEAR) z += DEPTH; tileZ[i] = z;
-      tileEls[i].style.transform = "translate3d(0px, 0px, " + -z + "px) " + baseTransforms[i];
-      tileEls[i].style.opacity = z > fadeStart ? String(Math.max(0, Math.min(1, 1 - (z - fadeStart) / fadeSpan))) : "1";
-    }
-    for (let i = 0; i < frameEls.length; i++) {
-      let z = frameZ[i] - delta; if (z < NEAR) z += DEPTH; frameZ[i] = z;
-      frameEls[i].style.transform = "translate3d(0px, 0px, " + -z + "px)";
-      frameEls[i].style.opacity = z > fadeStart ? String(Math.max(0, Math.min(1, 1 - (z - fadeStart) / fadeSpan))) : "1";
-    }
+    if (es < 0.97) { rafId = requestAnimationFrame(tick); return; }
+    sceneEl.style.transform = "rotateY(" + ptr.x * 7 + "deg) rotateX(" + (-ptr.y * 5) + "deg)";
+    applyPositions(delta);
     rafId = requestAnimationFrame(tick);
   }
   function start() { if (running) return; running = true; lastT = 0; rafId = requestAnimationFrame(tick); }
@@ -838,13 +843,13 @@ motionTl
   gsap.fromTo(tunnelEnter, { s: 0 },
     { s: 1, ease: "none", immediateRender: true,
       scrollTrigger: { trigger: "#tunnel", start: "top bottom+=70%", end: "top top", scrub: 0.5 } });
+  gsap.fromTo("#tunnelViewport", { scale: 0.001, transformOrigin: "50% 50%" },
+    { scale: 1, ease: "none", immediateRender: true, force3D: true,
+      scrollTrigger: { trigger: "#tunnel", start: "top bottom+=70%", end: "top top", scrub: 0.5 } });
   gsap.fromTo("#tunnelViewport", { autoAlpha: 0 },
     { autoAlpha: 1, ease: "none", immediateRender: true,
       scrollTrigger: { trigger: "#tunnel", start: "top bottom+=70%", end: "top bottom-=10%", scrub: 0.5 } });
-  /* iris dissolves as the tunnel reaches full size */
-  gsap.fromTo("#tunnelIris", { opacity: 1 },
-    { opacity: 0, ease: "power1.in", immediateRender: true,
-      scrollTrigger: { trigger: "#tunnel", start: "top bottom-=20%", end: "top top", scrub: 0.5 } });
+
   gsap.fromTo("#tunnelViewport",
     { yPercent: 0 },
     { yPercent: -100, ease: "none", immediateRender: false,
