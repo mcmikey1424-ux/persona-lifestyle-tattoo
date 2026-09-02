@@ -216,6 +216,8 @@ body.body--green { background-color: var(--green); }
   left: -8vw; width: 116vw;
   display: flex; gap: 1.8vw;
   align-items: center;
+  perspective: 1200px; /* cylindrical depth: edge cards angle away */
+  transform-style: preserve-3d;
   will-change: transform;
 }
 .motion__card {

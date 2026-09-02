@@ -279,10 +279,17 @@ MOTION_IMGS.forEach((n) => {
   motionBand.appendChild(d);
 });
 
-/* bow the band: cards follow a parabolic arc, each tilted tangent to it */
-[...motionBand.children].forEach((card, i, arr) => {
+/* bow the band like a cylinder segment: parabolic lift, tangent tilt,
+   and per-card Y-rotation so the edges angle away in 3D */
+const motionCards = [...motionBand.children];
+motionCards.forEach((card, i, arr) => {
   const t = i / (arr.length - 1) - 0.5; /* -0.5 … 0.5 across the band */
-  gsap.set(card, { yPercent: t * t * 190 - 16, rotation: t * 24 });
+  gsap.set(card, {
+    yPercent: t * t * 190 - 16,
+    rotation: t * 24,
+    rotationY: -t * 34,
+    z: -Math.abs(t) * 120,
+  });
 });
 
 const motionRow1 = document.getElementById("motionRow1");
@@ -322,6 +329,24 @@ motionTl
     { y: () => -window.innerHeight * 1.5, x: () => window.innerWidth * 0.04, rotation: 7, ease: "none", duration: 7 },
     2.6
   );
+
+/* the bow flattens as the band rides out, like the reference settling
+   into a flat row near the top of its journey */
+motionCards.forEach((card, i, arr) => {
+  const t = i / (arr.length - 1) - 0.5;
+  motionTl.to(
+    card,
+    {
+      yPercent: t * t * 34 - 4,
+      rotation: t * 6,
+      rotationY: -t * 8,
+      z: -Math.abs(t) * 20,
+      ease: "none",
+      duration: 3.4,
+    },
+    6.2
+  );
+});
 
 /* ---------- Mosaic: scattered tiles assemble ---------- */
 const tilesWrap = document.getElementById("mosaicTiles");
