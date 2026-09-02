@@ -189,9 +189,10 @@ gsap.timeline({
   },
 })
   .to(heroWord, { scale: () => heroScale(), top: 20, ease: "power1.inOut", force3D: true }, 0)
-  .to("#heroTagline", { scale: 0.6, opacity: 0, yPercent: -40, ease: "none" }, 0)
+  /* text blocks sweep OUT to their own sides on scroll (portrait untouched) */
+  .to("#heroTagline", { x: () => -window.innerWidth * 0.6, opacity: 0, ease: "power1.in" }, 0)
   .to("#heroHint", { opacity: 0, ease: "none", duration: 0.25 }, 0)
-  .to("#heroMono", { opacity: 0, yPercent: -60, ease: "none" }, 0)
+  .to("#heroMono", { x: () => window.innerWidth * 0.6, opacity: 0, ease: "power1.in" }, 0)
   /* explicit from-value: with invalidateOnRefresh, a refresh mid-intro
      (orbit still hidden) would otherwise capture opacity 0 as the start
      and pin the orbit invisible */
