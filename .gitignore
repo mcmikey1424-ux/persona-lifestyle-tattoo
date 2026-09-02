@@ -1,3 +1,4 @@
 ﻿.claude/
 *.png
 !assets/alfrey-cut.png
+!assets/friend-*.png

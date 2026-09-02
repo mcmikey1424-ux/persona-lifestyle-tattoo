@@ -228,6 +228,29 @@ if (orbitRing) {
   });
 }
 
+/* ---------- Portrait auto-switch: crossfade through the crew ---------- */
+const PORTRAIT_CDN = "https://cdn.jsdelivr.net/gh/mcmikey1424-ux/persona-lifestyle-tattoo@master/assets/";
+const PORTRAITS = ["alfrey-cut.png", "friend-2.png", "friend-3.png", "friend-4.png", "friend-5.png", "friend-6.png"]
+  .map((f) => PORTRAIT_CDN + f);
+const orbitImgA = document.getElementById("orbitImgA");
+const orbitImgB = document.getElementById("orbitImgB");
+if (orbitImgA && orbitImgB && !reduceMotion) {
+  PORTRAITS.forEach((src) => { const i = new Image(); i.crossOrigin = "anonymous"; i.src = src; });
+  let pIdx = 0;
+  let front = orbitImgA, back = orbitImgB;
+  setInterval(() => {
+    pIdx = (pIdx + 1) % PORTRAITS.length;
+    back.src = PORTRAITS[pIdx];
+    const show = () => {
+      gsap.to(back, { opacity: 1, duration: 0.9, ease: "power2.inOut" });
+      gsap.to(front, { opacity: 0, duration: 0.9, ease: "power2.inOut" });
+      [front, back] = [back, front];
+    };
+    if (back.complete && back.naturalWidth) show();
+    else back.onload = show;
+  }, 6000);
+}
+
 /* Nav links appear once the morph completes. The fixed morphing wordmark
    itself stays as the permanent logo (no swap — no end-of-shrink flicker);
    the invisible #navLogo only serves as the size/position target. */

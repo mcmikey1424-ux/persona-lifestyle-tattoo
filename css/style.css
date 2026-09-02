@@ -228,6 +228,7 @@ body.body--green { background-color: var(--green); }
   transform: translateX(-50%) translateZ(0);
   user-select: none;
 }
+.orbit__img--b { opacity: 0; }
 .orbit__tilt {
   position: absolute; left: 50%; top: 50%;
   width: 0; height: 0;
