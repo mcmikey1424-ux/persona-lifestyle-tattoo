@@ -273,66 +273,90 @@ const motionBand = document.getElementById("motionBand");
    swings close to the camera (cards huge, twisted toward you), both
    ends recede far away and turn edge-on. Cards flow along the rail
    with scroll; fully scrubbed and reversible. */
+/* THE WEBGL RIBBON (Three.js) - the same rendering model as the
+   reference: a real 3D curve in space, a perspective camera, and the
+   studio's shots as textured planes riding the curve. The strip flows
+   along the rail with scroll; near the camera it is huge with true
+   perspective, and it twists away at both ends. */
 const SHOT_IMGS = ["work-irezumi", "work-blackwork", "work-realism", "work-neotrad"];
-const ribbonCards = [];
-for (let k = 0; k < 12; k++) {
-  const d = document.createElement("div");
-  d.className = "motion__card";
-  d.style.backgroundImage = `url(https://cdn.jsdelivr.net/gh/mcmikey1424-ux/persona-lifestyle-tattoo@master/assets/${SHOT_IMGS[k % SHOT_IMGS.length]}.jpg)`;
-  motionBand.appendChild(d);
-  ribbonCards.push(d);
+const glCanvas = document.createElement("canvas");
+glCanvas.className = "motion__gl";
+motionBand.appendChild(glCanvas);
+
+const glRenderer = new THREE.WebGLRenderer({ canvas: glCanvas, alpha: true, antialias: true });
+const glScene = new THREE.Scene();
+const glCamera = new THREE.PerspectiveCamera(40, 1, 0.1, 100);
+glCamera.position.set(0, 0, 10);
+
+function glSize() {
+  const w = motionBand.clientWidth || window.innerWidth;
+  const h = motionBand.clientHeight || window.innerHeight;
+  glRenderer.setSize(w, h, false);
+  glRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  glCamera.aspect = w / h;
+  glCamera.updateProjectionMatrix();
 }
 
-/* rail samples: x,y as viewport fractions; z px toward(+)/away(-) from
-   camera; rY = 3D twist. Middle of the rail is nearest the viewer. */
-const RIBBON_RAIL = [
-  { x: 1.34, y: -0.28, z: -720, rY: -58 },
-  { x: 1.04, y: 0.00, z: -430, rY: -36 },
-  { x: 0.74, y: 0.13, z: -150, rY: -16 },
-  { x: 0.46, y: 0.22, z: 170, rY: 10 },
-  { x: 0.20, y: 0.31, z: 340, rY: 34 },
-  { x: 0.02, y: 0.46, z: 150, rY: 58 },
-  { x: -0.12, y: 0.70, z: -160, rY: 78 },
-  { x: -0.27, y: 1.08, z: -470, rY: 88 },
-];
+/* the rail in world space: in from the top-right far away, swinging
+   close past the camera mid-strip, curling away bottom-left */
+const ribbonCurve = new THREE.CatmullRomCurve3([
+  new THREE.Vector3(8.5, 4.5, -7.0),
+  new THREE.Vector3(5.2, 2.8, -3.0),
+  new THREE.Vector3(2.2, 1.5, 0.8),
+  new THREE.Vector3(-0.8, 0.5, 3.2),
+  new THREE.Vector3(-3.8, -0.9, 1.6),
+  new THREE.Vector3(-5.8, -2.6, -1.8),
+  new THREE.Vector3(-7.5, -4.8, -6.0),
+]);
+const railFrames = ribbonCurve.computeFrenetFrames(200, false);
 
-function ribbonPoint(s) {
-  const W = window.innerWidth, H = window.innerHeight;
-  const n = RIBBON_RAIL.length - 1;
-  const f = Math.min(Math.max(s, 0), 1) * n;
-  const i = Math.min(Math.floor(f), n - 1);
-  const u = f - i;
-  const P = (idx) => RIBBON_RAIL[Math.min(Math.max(idx, 0), n)];
-  const cr = (a, b, c, d) =>
-    0.5 * (2 * b + (-a + c) * u + (2 * a - 5 * b + 4 * c - d) * u * u + (-a + 3 * b - 3 * c + d) * u * u * u);
-  const g = (key, scale) =>
-    cr(P(i - 1)[key], P(i)[key], P(i + 1)[key], P(i + 2)[key]) * scale;
-  return { x: g("x", W), y: g("y", H), z: g("z", 1), rY: g("rY", 1) };
+const texLoader = new THREE.TextureLoader();
+texLoader.crossOrigin = "anonymous";
+const ribbonMeshes = [];
+const planeGeo = new THREE.PlaneGeometry(3.05, 1.9);
+for (let k = 0; k < 10; k++) {
+  const tex = texLoader.load(
+    `https://cdn.jsdelivr.net/gh/mcmikey1424-ux/persona-lifestyle-tattoo@master/assets/${SHOT_IMGS[k % SHOT_IMGS.length]}.jpg`,
+    () => placeRibbon()
+  );
+  tex.colorSpace = THREE.SRGBColorSpace;
+  const mesh = new THREE.Mesh(
+    planeGeo,
+    new THREE.MeshBasicMaterial({ map: tex, side: THREE.DoubleSide })
+  );
+  mesh.visible = false;
+  glScene.add(mesh);
+  ribbonMeshes.push(mesh);
 }
 
-const RIBBON_SPAN = 0.5; /* portion of rail the strip occupies */
+const RIBBON_SPAN = 0.62;
 const ribbonFlow = { flow: 0 };
+const railBasis = new THREE.Matrix4();
+const vTan = new THREE.Vector3(), vToCam = new THREE.Vector3(), vUp = new THREE.Vector3();
 
-function renderRibbon() {
-  ribbonCards.forEach((card, i) => {
-    const lead = i / (ribbonCards.length - 1);
+function placeRibbon() {
+  ribbonMeshes.forEach((mesh, i) => {
+    const lead = i / (ribbonMeshes.length - 1);
     const s = ribbonFlow.flow * (1 + RIBBON_SPAN) - lead * RIBBON_SPAN;
-    if (s < -0.02 || s > 1.02) { gsap.set(card, { x: -9999, y: -9999 }); return; }
-    const p = ribbonPoint(s);
-    const q = ribbonPoint(Math.min(1, s + 0.015));
-    let rot = Math.atan2(q.y - p.y, q.x - p.x) * (180 / Math.PI) + 180;
-    if (rot > 180) rot -= 360;
-    gsap.set(card, {
-      x: p.x, y: p.y, z: p.z,
-      xPercent: -50, yPercent: -50,
-      rotation: rot,
-      rotationY: p.rY,
-      zIndex: Math.round(1200 + p.z),
-    });
+    if (s < 0.002 || s > 0.998) { mesh.visible = false; return; }
+    mesh.visible = true;
+    const pos = ribbonCurve.getPointAt(s);
+    mesh.position.copy(pos);
+    /* orient: width along the rail tangent, face turned toward the
+       camera (minus the tangent component) - the strip twists
+       naturally as the tangent bends through 3D */
+    vTan.copy(ribbonCurve.getTangentAt(s));
+    vToCam.copy(glCamera.position).sub(pos);
+    vToCam.addScaledVector(vTan, -vToCam.dot(vTan)).normalize();
+    vUp.crossVectors(vToCam, vTan).normalize();
+    railBasis.makeBasis(vTan, vUp, vToCam);
+    mesh.setRotationFromMatrix(railBasis);
   });
+  glRenderer.render(glScene, glCamera);
 }
-renderRibbon();
-window.addEventListener("resize", renderRibbon);
+glSize();
+placeRibbon();
+window.addEventListener("resize", () => { glSize(); placeRibbon(); });
 
 const motionRow1 = document.getElementById("motionRow1");
 const motionRow2 = document.getElementById("motionRow2");
@@ -372,7 +396,7 @@ motionTl
    rail as you scroll — a continuous strip flowing through, scrubbed
    and fully reversible. */
 /* the ride: the strip flows along the 3D rail */
-motionTl.to(ribbonFlow, { flow: 1, ease: "none", duration: 7.4, onUpdate: renderRibbon }, 2.2);
+motionTl.to(ribbonFlow, { flow: 1, ease: "none", duration: 7.4, onUpdate: placeRibbon }, 2.2);
 
 /* ---------- Mosaic: scattered tiles assemble ---------- */
 const tilesWrap = document.getElementById("mosaicTiles");
