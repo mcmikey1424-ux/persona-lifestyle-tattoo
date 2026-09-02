@@ -212,36 +212,28 @@ body.body--green { background-color: var(--green); }
   text-align: center;
 }
 .motion__band {
-  /* full-stage rail: cards are placed along a curved track in JS */
+  /* full-stage mount for the card wheel (positions computed in JS) */
   position: absolute; inset: 0;
   perspective: 1400px;
   transform-style: preserve-3d;
   pointer-events: none;
 }
 .motion__band .motion__card { position: absolute; left: 0; top: 0; }
-.motion__card {
-  /* bright shot-card: white mat, photo, mono caption strip */
-  flex: none;
-  width: 24vw;
-  background: var(--card);
-  border-radius: 6px;
-  padding: 0.7vw;
-  box-shadow: 0 10px 34px rgba(0, 0, 0, 0.3);
+.motion__drum {
+  /* the rotating cylinder; tiles are placed around it in JS */
+  position: absolute;
+  left: 50%; top: 50%;
+  transform-style: preserve-3d;
   will-change: transform;
 }
-.motion__card img {
-  width: 100%;
-  aspect-ratio: 16 / 10;
-  object-fit: cover;
-  border-radius: 3px;
-  display: block;
-}
-.motion__cardcap {
-  display: block;
-  padding: 0.6vw 0.2vw 0.15vw;
-  font-size: 9px;
-  letter-spacing: 0.14em;
-  color: #6f6a5e;
+.motion__tile3d {
+  position: absolute;
+  left: 50%; top: 50%;
+  background-size: cover;
+  background-position: center;
+  border-radius: 6px;
+  border: 1px solid rgba(234, 230, 221, 0.14);
+  /* backfaces stay visible so you see through the drum, like the reference */
 }
 
 /* ============ MOSAIC ============ */

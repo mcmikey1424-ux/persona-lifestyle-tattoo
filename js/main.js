@@ -268,43 +268,40 @@ heroWord.addEventListener("click", () => {
    curved band of work shots sweeps up from the bottom, over the
    headings, and away off the top. Fully scrubbed and reversible. */
 const motionBand = document.getElementById("motionBand");
-const MOTION_SHOTS = [
-  ["work-realism", "STILL TIGER — REALISM"],
-  ["work-neotrad", "SERPENT BLOOM — NEO"],
-  ["work-irezumi", "RYU NO YUME — IREZUMI"],
-  ["work-blackwork", "SACRED LINES — BLACKWORK"],
-  ["work-realism", "DAILY FLASH — NO. 27"],
-  ["work-neotrad", "PEONY STUDY — COLOR"],
-  ["work-irezumi", "DRAGON SLEEVE — WIP"],
-  ["work-blackwork", "DOTWORK GRID — STUDY"],
-  ["work-realism", "PORTRAIT PASS — 02"],
-  ["work-neotrad", "SNAKE & BLOOM — BACK"],
-];
-MOTION_SHOTS.forEach(([n, cap]) => {
-  const d = document.createElement("div");
-  d.className = "motion__card";
-  d.innerHTML = `<img loading="lazy" decoding="async" crossorigin="anonymous" src="https://cdn.jsdelivr.net/gh/mcmikey1424-ux/persona-lifestyle-tattoo@master/assets/${n}.jpg" alt="Studio work"><span class="motion__cardcap mono">${cap}</span>`;
-  motionBand.appendChild(d);
-});
-
-/* bow the band like a cylinder segment: parabolic lift, tangent tilt,
-   and per-card Y-rotation so the edges angle away in 3D */
-const motionCards = [...motionBand.children];
-
-/* the spiral rail: one S-curved track through the viewport — enters
-   bottom-left, crests up across center, curls out off the top-right */
-function motionTrack() {
-  const W = window.innerWidth, H = window.innerHeight;
-  return [
-    { x: -0.30 * W, y: 1.38 * H },
-    { x: 0.02 * W, y: 1.02 * H },
-    { x: 0.38 * W, y: 0.64 * H },
-    { x: 0.74 * W, y: 0.60 * H },
-    { x: 1.04 * W, y: 0.34 * H },
-    { x: 1.24 * W, y: -0.08 * H },
-    { x: 1.46 * W, y: -0.60 * H },
-  ];
+/* THE SPIRAL DRUM: tiles wrapped around a vertical cylinder - several
+   tiles around x stacked rows, each row twisted so the seam spirals.
+   Scroll rotates the drum on its vertical axis while it travels up
+   through the pin (same construction as the reference gallery). */
+const DRUM_COLS = 8, DRUM_ROWS = 3, DRUM_TWIST = 16; /* deg of spiral per row */
+const DRUM_IMGS = ["work-irezumi", "work-blackwork", "work-realism", "work-neotrad"];
+const drum = document.createElement("div");
+drum.className = "motion__drum";
+motionBand.appendChild(drum);
+for (let r = 0; r < DRUM_ROWS; r++) {
+  for (let c = 0; c < DRUM_COLS; c++) {
+    const tile = document.createElement("div");
+    tile.className = "motion__tile3d";
+    tile.style.backgroundImage = `url(https://cdn.jsdelivr.net/gh/mcmikey1424-ux/persona-lifestyle-tattoo@master/assets/${DRUM_IMGS[(r * 3 + c) % DRUM_IMGS.length]}.jpg)`;
+    drum.appendChild(tile);
+  }
 }
+
+function sizeDrum() {
+  const tileW = Math.max(180, window.innerWidth * 0.165);
+  const tileH = tileW * 1.28;
+  const R = ((tileW / 2) / Math.tan(Math.PI / DRUM_COLS)) * 1.05;
+  [...drum.children].forEach((tile, idx) => {
+    const r = Math.floor(idx / DRUM_COLS), c = idx % DRUM_COLS;
+    const ang = c * (360 / DRUM_COLS) + r * DRUM_TWIST;
+    tile.style.width = tileW + "px";
+    tile.style.height = tileH + "px";
+    tile.style.transform =
+      `translate(-50%, -50%) translateY(${(r - (DRUM_ROWS - 1) / 2) * (tileH + 10)}px) ` +
+      `rotateY(${ang}deg) translateZ(${R}px)`;
+  });
+}
+sizeDrum();
+window.addEventListener("resize", sizeDrum);
 
 const motionRow1 = document.getElementById("motionRow1");
 const motionRow2 = document.getElementById("motionRow2");
@@ -337,27 +334,20 @@ motionTl
   )
   ;
 
-/* spiral ride: every card runs the SAME curved rail, each a small beat
-   behind the one before — a train of cards snaking through the section */
-const track = motionTrack();
-motionCards.forEach((card, i, arr) => {
-  const lead = i / (arr.length - 1); /* 0 = head of the snake … 1 = tail */
-  gsap.set(card, {
-    xPercent: -50, yPercent: -50,
-    x: track[0].x, y: track[0].y,
-    rotationY: -(lead - 0.5) * 18, /* subtle cylinder depth along the train */
-  });
-  motionTl.to(
-    card,
-    {
-      motionPath: { path: track, curviness: 1.25, autoRotate: true },
-      ease: "none",
-      duration: 5.8,
-      immediateRender: false,
-    },
-    2.3 + lead * 1.9
-  );
-});
+/* THE FILM-STRIP RAIL: one continuous S-curved track feeding through
+   the scene — in from the top-right, snaking down across the middle,
+   and the leading end CURLS hard in 3D at the bottom-left (the ribbon
+   twisting away like unwinding film). Cards are conveyed ALONG the
+   rail as you scroll — a continuous strip flowing through, scrubbed
+   and fully reversible. */
+/* the ride: the drum rises from below the fold, spinning a full turn
+   as it climbs past the crossing headings and exits off the top */
+motionTl.fromTo(
+  drum,
+  { rotationY: -20, y: () => window.innerHeight * 1.25 },
+  { rotationY: -380, y: () => -window.innerHeight * 1.45, ease: "none", duration: 7.4 },
+  2.2
+);
 
 /* ---------- Mosaic: scattered tiles assemble ---------- */
 const tilesWrap = document.getElementById("mosaicTiles");
