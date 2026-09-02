@@ -300,20 +300,42 @@ function glSize() {
 /* the rail in world space: in from the top-right far away, swinging
    close past the camera mid-strip, curling away bottom-left */
 const ribbonCurve = new THREE.CatmullRomCurve3([
-  new THREE.Vector3(8.5, 4.5, -7.0),
-  new THREE.Vector3(5.2, 2.8, -3.0),
-  new THREE.Vector3(2.2, 1.5, 0.8),
-  new THREE.Vector3(-0.8, 0.5, 3.2),
-  new THREE.Vector3(-3.8, -0.9, 1.6),
-  new THREE.Vector3(-5.8, -2.6, -1.8),
-  new THREE.Vector3(-7.5, -4.8, -6.0),
+  new THREE.Vector3(26.0, -7.5, -8.0),
+  new THREE.Vector3(16.0, -4.5, -4.5),
+  new THREE.Vector3(8.0, -2.2, -1.5),
+  new THREE.Vector3(0.5, 0.2, 1.2),
+  new THREE.Vector3(-7.0, 2.4, -0.6),
+  new THREE.Vector3(-15.0, 4.8, -3.6),
+  new THREE.Vector3(-24.0, 7.5, -7.5),
 ]);
-const railFrames = ribbonCurve.computeFrenetFrames(200, false);
+
+/* THE SWIRL: the rail itself unrolls through the scroll - a tight
+   high curl far away unwinds into the big flat sweep, then re-curls
+   the other way and lifts off. Control points morph between three
+   keyframe rails as the scrub advances. */
+const RAIL_A = [[14, 8, -14], [8, 6.5, -9], [3.5, 5.2, -6.5], [0, 4.6, -6], [-3.5, 5, -7], [-8, 6.2, -10], [-13, 8, -14]];
+const RAIL_B = [[26, -7.5, -8], [16, -4.5, -4.5], [8, -2.2, -1.5], [0.5, 0.2, 1.2], [-7, 2.4, -0.6], [-15, 4.8, -3.6], [-24, 7.5, -7.5]];
+const RAIL_C = [[18, 6, -6], [10, 7.5, -4], [4, 9, -2.5], [-2, 10.5, -2], [-8, 12, -4], [-14, 14, -7], [-20, 16, -11]];
+
+function morphRail(m) {
+  let src, dst, u;
+  if (m < 0.5) { src = RAIL_A; dst = RAIL_B; u = m / 0.5; }
+  else { src = RAIL_B; dst = RAIL_C; u = (m - 0.5) / 0.5; }
+  u = u * u * (3 - 2 * u); /* smoothstep eases the unroll */
+  ribbonCurve.points.forEach((pt, i) => {
+    pt.set(
+      src[i][0] + (dst[i][0] - src[i][0]) * u,
+      src[i][1] + (dst[i][1] - src[i][1]) * u,
+      src[i][2] + (dst[i][2] - src[i][2]) * u
+    );
+  });
+  ribbonCurve.updateArcLengths();
+}
 
 const texLoader = new THREE.TextureLoader();
 texLoader.crossOrigin = "anonymous";
 const ribbonMeshes = [];
-const planeGeo = new THREE.PlaneGeometry(3.05, 1.9);
+const planeGeo = new THREE.PlaneGeometry(4.5, 2.8);
 for (let k = 0; k < 10; k++) {
   const tex = texLoader.load(
     `https://cdn.jsdelivr.net/gh/mcmikey1424-ux/persona-lifestyle-tattoo@master/assets/${SHOT_IMGS[k % SHOT_IMGS.length]}.jpg`,
@@ -329,12 +351,13 @@ for (let k = 0; k < 10; k++) {
   ribbonMeshes.push(mesh);
 }
 
-const RIBBON_SPAN = 0.62;
+const RIBBON_SPAN = 0.9;
 const ribbonFlow = { flow: 0 };
 const railBasis = new THREE.Matrix4();
 const vTan = new THREE.Vector3(), vToCam = new THREE.Vector3(), vUp = new THREE.Vector3();
 
 function placeRibbon() {
+  morphRail(ribbonFlow.flow);
   ribbonMeshes.forEach((mesh, i) => {
     const lead = i / (ribbonMeshes.length - 1);
     const s = ribbonFlow.flow * (1 + RIBBON_SPAN) - lead * RIBBON_SPAN;
