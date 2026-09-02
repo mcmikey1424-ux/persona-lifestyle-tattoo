@@ -149,7 +149,12 @@ body.body--green { background-color: var(--green); }
   z-index: 2;
 }
 .hero__tag--l { left: 5.5vw; }
-.hero__tag--r { right: 5.5vw; }
+.hero__tag--r {
+  /* anchored by the same vw math as the heading (right: would miss by
+     the scrollbar width) */
+  left: 94.5vw;
+  transform: translateX(-100%);
+}
 .hero__row {
   margin-top: auto;
   margin-bottom: 10vh;
