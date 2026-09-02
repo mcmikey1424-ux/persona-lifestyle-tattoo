@@ -183,7 +183,7 @@ gsap.timeline({
   scrollTrigger: {
     trigger: "#hero",
     start: "top top",
-    end: "72% top",
+    end: "100% top",
     scrub: 0.7,
     invalidateOnRefresh: true,
   },
@@ -287,7 +287,7 @@ if (orbitImgA && !reduceMotion) {
    the invisible #navLogo only serves as the size/position target. */
 ScrollTrigger.create({
   trigger: "#hero",
-  start: "74% top",
+  start: "96% top",
   onEnter: () => {
     gsap.to(".nav__link", {
       opacity: 1,
