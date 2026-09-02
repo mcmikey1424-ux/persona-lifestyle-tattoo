@@ -235,8 +235,18 @@ if (orbitRing) {
 
 /* ---------- Portrait auto-switch: crossfade through the crew ---------- */
 const PORTRAIT_CDN = "https://cdn.jsdelivr.net/gh/mcmikey1424-ux/persona-lifestyle-tattoo@master/assets/";
-const PORTRAITS = ["alfrey-cut.png", "friend-2.png", "friend-3.png", "friend-4.png", "friend-5.png", "friend-6.png"]
-  .map((f) => PORTRAIT_CDN + f);
+/* per-portrait height (vh): equalizes face scale — each photo was shot
+   at a different distance, so a uniform height gave mismatched "FOV" */
+const PORTRAIT_LIST = [
+  ["alfrey-cut.png", 91],
+  ["friend-2.png", 84.4],
+  ["friend-3.png", 85.3],
+  ["friend-4.png", 98.3],
+  ["friend-5.png", 71.3],
+  ["friend-6.png", 84.3],
+];
+const PORTRAITS = PORTRAIT_LIST.map(([f]) => PORTRAIT_CDN + f);
+const PORTRAIT_VH = PORTRAIT_LIST.map(([, vh]) => vh);
 const orbitImgA = document.getElementById("orbitImgA");
 const orbitImgB = document.getElementById("orbitImgB");
 if (orbitImgA && orbitImgB && !reduceMotion) {
@@ -246,6 +256,7 @@ if (orbitImgA && orbitImgB && !reduceMotion) {
   setInterval(() => {
     pIdx = (pIdx + 1) % PORTRAITS.length;
     back.src = PORTRAITS[pIdx];
+    back.style.height = PORTRAIT_VH[pIdx] + "vh";
     const show = () => {
       gsap.to(back, { opacity: 1, duration: 0.9, ease: "power2.inOut" });
       gsap.to(front, { opacity: 0, duration: 0.9, ease: "power2.inOut" });
