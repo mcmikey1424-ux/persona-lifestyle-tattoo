@@ -909,10 +909,8 @@ motionTl
   }, { threshold: 0 }).observe(document.getElementById("tunnel"));
   document.addEventListener("visibilitychange", function () { if (document.hidden) stop(); else if (visible) start(); });
 
-  /* entrance: zoom happens INSIDE the 3D world (scene scale composed
-     into the loop transform) — scaling the perspective container itself
-     re-rasterizes the whole tree per step and flickers. The viewport
-     only fades. */
+  /* entrance: zoom happens with a frozen interior raster (flicker-free).
+     The viewport only fades. */
   const tunnelEnter = { s: 0 };
   window.__tunnelEnter = tunnelEnter;
   gsap.fromTo(tunnelEnter, { s: 0 },
