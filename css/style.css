@@ -78,8 +78,10 @@ body.body--green { background-color: var(--green); }
 /* splash wordmark: scale the monogram to the caps' cap-height and sit
    it on the baseline so it aligns with the letters */
 .preloader__word .logo-o {
-  height: 0.72em; width: 0.74em;
-  vertical-align: 0;
+  /* round mark optically centered on the caps: cap height is ~0.70em,
+     the mark overshoots it equally above and below */
+  height: 0.80em; width: 0.82em;
+  vertical-align: -0.05em;
 }
 .preloader__bar {
   width: min(280px, 60vw); height: 1px;
