@@ -44,37 +44,6 @@ function splitWords(el) {
   return el.querySelectorAll(".gw");
 }
 
-/* ---------- 3D char tumble: signature typography reveal ---------- */
-function splitTumble(el) {
-  const words = el.textContent.trim().split(/\s+/);
-  el.classList.add("t3d");
-  el.innerHTML = words
-    .map(
-      (w) =>
-        `<span class="tw">` +
-        w.split("").map((c) => `<span class="tch">${c}</span>`).join("") +
-        `</span>`
-    )
-    .join(" ");
-  return el.querySelectorAll(".tch");
-}
-
-function tumbleIn(el, { scrub = false } = {}) {
-  const chars = splitTumble(el);
-  const from = { rotationX: -90, yPercent: 60, opacity: 0 };
-  const to = {
-    rotationX: 0, yPercent: 0, opacity: 1,
-    stagger: 0.022,
-    duration: 0.9,
-    ease: "power3.out",
-  };
-  to.scrollTrigger = scrub
-    ? { trigger: el, start: "top 85%", end: "top 40%", scrub: 0.5 }
-    : { trigger: el, start: "top 85%", toggleActions: "play none none reverse" };
-  if (scrub) { to.ease = "power1.out"; }
-  gsap.fromTo(chars, from, to);
-}
-
 /* ---------- Scroll text: per-word 3D scale-up ----------
    Each word scrubs from small/tilted/deep to flat as it crosses the
    viewport; words complete one after another (sequential stagger). */
@@ -111,6 +80,53 @@ function scaleUpText(el, opts = {}) {
       },
     }
   );
+}
+
+/* ---------- Glitch scramble reveal (Creative Director port) ----------
+   Characters cycle through a glyph set before settling on the real text.
+   Queue cadence, reset chars, 35ms frame clock and the deterministic
+   glyph formula are ported 1:1 from the reference ScrambleText. */
+const SCRAMBLE_SET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%&*";
+const SCRAMBLE_RESET = new Set(["C", "E", "O", "P"]);
+function scrambleReveal(el, { simultaneous = false } = {}) {
+  const text = el.textContent;
+  const queue = [];
+  let ti = 0;
+  for (const ch of text) {
+    if (SCRAMBLE_RESET.has(ch)) ti = 0;
+    const start = simultaneous ? 0 : ti * 3 + Math.floor(Math.random() * 2);
+    const end = simultaneous
+      ? start + 25 + Math.floor(Math.random() * 20)
+      : start + 8 + Math.floor(Math.random() * 6);
+    queue.push({ ch, start, end });
+    ti++;
+  }
+  let frame = 0;
+  const esc = (c) => (c === "&" ? "&amp;" : c === "<" ? "&lt;" : c);
+  const iv = setInterval(() => {
+    frame++;
+    if (queue.every((q) => frame >= q.end)) {
+      el.textContent = text;
+      clearInterval(iv);
+      return;
+    }
+    el.innerHTML = queue
+      .map((q, i) => {
+        if (q.ch === " ") return " ";
+        if (frame < q.start) return `<span style="visibility:hidden">${esc(q.ch)}</span>`;
+        if (frame >= q.end) return esc(q.ch);
+        return esc(SCRAMBLE_SET[(i * 31 + frame * 17) % SCRAMBLE_SET.length]);
+      })
+      .join("");
+  }, 35);
+}
+function scrambleOnEnter(el, opts) {
+  ScrollTrigger.create({
+    trigger: el,
+    start: "top 85%",
+    once: true,
+    onEnter: () => scrambleReveal(el, opts),
+  });
 }
 
 /* ---------- Preloader ---------- */
@@ -322,6 +338,16 @@ const motionTl = gsap.timeline({
     invalidateOnRefresh: true,
   },
 });
+ScrollTrigger.create({
+  trigger: "#motion",
+  start: "top 60%",
+  once: true,
+  onEnter: () => {
+    scrambleReveal(motionRow1, { simultaneous: true });
+    scrambleReveal(motionRow2, { simultaneous: true });
+  },
+});
+
 motionTl
   /* row 1: enters from the right, exits left */
   .fromTo(
@@ -478,7 +504,7 @@ document.querySelectorAll("[data-work]").forEach((work) => {
   const { canvas, state, draw } = makePixelReveal(wrap);
   const tags = work.querySelectorAll(".work__tags li");
   const desc = work.querySelector(".work__desc");
-  tumbleIn(work.querySelector(".work__title"));
+  scrambleOnEnter(work.querySelector(".work__title"));
   const view = work.querySelector(".work__view");
 
   /* diagonal clip wipe + progressive pixel render, exactly like the reference */
@@ -547,7 +573,7 @@ gsap.utils.toArray("[data-service]").forEach((row, i) => {
     ease: "power2.out",
     scrollTrigger: { trigger: row, start: "top 88%", toggleActions: "play none none reverse" },
   });
-  tumbleIn(row.querySelector(".service__title"));
+  scrambleOnEnter(row.querySelector(".service__title"));
 });
 
 /* ---------- Green act: page tint + word reveal + hotspots ---------- */
@@ -620,7 +646,7 @@ gsap.utils.toArray("[data-journal]").forEach((row) => {
     opacity: 0, y: 34, duration: 0.65, ease: "power2.out",
     scrollTrigger: { trigger: row, start: "top 90%", toggleActions: "play none none reverse" },
   });
-  tumbleIn(row.querySelector(".journal__title"));
+  scrambleOnEnter(row.querySelector(".journal__title"));
 });
 
 /* ---------- Footer wordmark rise ---------- */
