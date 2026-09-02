@@ -1,5 +1,5 @@
 /* PERSONA LIFESTYLE TATTOO — motion system */
-gsap.registerPlugin(ScrollTrigger);
+gsap.registerPlugin(ScrollTrigger, MotionPathPlugin);
 
 const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
@@ -268,29 +268,43 @@ heroWord.addEventListener("click", () => {
    curved band of work shots sweeps up from the bottom, over the
    headings, and away off the top. Fully scrubbed and reversible. */
 const motionBand = document.getElementById("motionBand");
-const MOTION_IMGS = [
-  "work-irezumi", "work-blackwork", "work-realism",
-  "work-neotrad", "work-irezumi", "work-blackwork",
+const MOTION_SHOTS = [
+  ["work-realism", "STILL TIGER — REALISM"],
+  ["work-neotrad", "SERPENT BLOOM — NEO"],
+  ["work-irezumi", "RYU NO YUME — IREZUMI"],
+  ["work-blackwork", "SACRED LINES — BLACKWORK"],
+  ["work-realism", "DAILY FLASH — NO. 27"],
+  ["work-neotrad", "PEONY STUDY — COLOR"],
+  ["work-irezumi", "DRAGON SLEEVE — WIP"],
+  ["work-blackwork", "DOTWORK GRID — STUDY"],
+  ["work-realism", "PORTRAIT PASS — 02"],
+  ["work-neotrad", "SNAKE & BLOOM — BACK"],
 ];
-MOTION_IMGS.forEach((n) => {
+MOTION_SHOTS.forEach(([n, cap]) => {
   const d = document.createElement("div");
   d.className = "motion__card";
-  d.innerHTML = `<img loading="lazy" decoding="async" crossorigin="anonymous" src="https://cdn.jsdelivr.net/gh/mcmikey1424-ux/persona-lifestyle-tattoo@master/assets/${n}.jpg" alt="Studio work">`;
+  d.innerHTML = `<img loading="lazy" decoding="async" crossorigin="anonymous" src="https://cdn.jsdelivr.net/gh/mcmikey1424-ux/persona-lifestyle-tattoo@master/assets/${n}.jpg" alt="Studio work"><span class="motion__cardcap mono">${cap}</span>`;
   motionBand.appendChild(d);
 });
 
 /* bow the band like a cylinder segment: parabolic lift, tangent tilt,
    and per-card Y-rotation so the edges angle away in 3D */
 const motionCards = [...motionBand.children];
-motionCards.forEach((card, i, arr) => {
-  const t = i / (arr.length - 1) - 0.5; /* -0.5 … 0.5 across the band */
-  gsap.set(card, {
-    yPercent: t * t * 190 - 16,
-    rotation: t * 24,
-    rotationY: -t * 34,
-    z: -Math.abs(t) * 120,
-  });
-});
+
+/* the spiral rail: one S-curved track through the viewport — enters
+   bottom-left, crests up across center, curls out off the top-right */
+function motionTrack() {
+  const W = window.innerWidth, H = window.innerHeight;
+  return [
+    { x: -0.30 * W, y: 1.38 * H },
+    { x: 0.02 * W, y: 1.02 * H },
+    { x: 0.38 * W, y: 0.64 * H },
+    { x: 0.74 * W, y: 0.60 * H },
+    { x: 1.04 * W, y: 0.34 * H },
+    { x: 1.24 * W, y: -0.08 * H },
+    { x: 1.46 * W, y: -0.60 * H },
+  ];
+}
 
 const motionRow1 = document.getElementById("motionRow1");
 const motionRow2 = document.getElementById("motionRow2");
@@ -321,30 +335,27 @@ motionTl
     { x: () => window.innerWidth + 60, ease: "none", duration: 10 },
     0
   )
-  /* arc band: rides from below the fold, sweeps over the crossing
-     headings, and exits off the top with a slow counter-roll */
-  .fromTo(
-    motionBand,
-    { y: () => window.innerHeight * 1.35, x: () => -window.innerWidth * 0.05, rotation: -9 },
-    { y: () => -window.innerHeight * 1.5, x: () => window.innerWidth * 0.04, rotation: 7, ease: "none", duration: 7 },
-    2.6
-  );
+  ;
 
-/* the bow flattens as the band rides out, like the reference settling
-   into a flat row near the top of its journey */
+/* spiral ride: every card runs the SAME curved rail, each a small beat
+   behind the one before — a train of cards snaking through the section */
+const track = motionTrack();
 motionCards.forEach((card, i, arr) => {
-  const t = i / (arr.length - 1) - 0.5;
+  const lead = i / (arr.length - 1); /* 0 = head of the snake … 1 = tail */
+  gsap.set(card, {
+    xPercent: -50, yPercent: -50,
+    x: track[0].x, y: track[0].y,
+    rotationY: -(lead - 0.5) * 18, /* subtle cylinder depth along the train */
+  });
   motionTl.to(
     card,
     {
-      yPercent: t * t * 34 - 4,
-      rotation: t * 6,
-      rotationY: -t * 8,
-      z: -Math.abs(t) * 20,
+      motionPath: { path: track, curviness: 1.25, autoRotate: true },
       ease: "none",
-      duration: 3.4,
+      duration: 5.8,
+      immediateRender: false,
     },
-    6.2
+    2.3 + lead * 1.9
   );
 });
 
