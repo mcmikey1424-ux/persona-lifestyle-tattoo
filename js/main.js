@@ -802,7 +802,8 @@ motionTl
     const delta = 320 * SPEED * factor * boost * dt;
     ptr.x += (ptrTarget.x - ptr.x) * Math.min(1, dt * 3);
     ptr.y += (ptrTarget.y - ptr.y) * Math.min(1, dt * 3);
-    sceneEl.style.transform = "rotateY(" + ptr.x * 7 + "deg) rotateX(" + (-ptr.y * 5) + "deg)";
+    const es = 0.001 + 0.999 * (window.__tunnelEnter ? window.__tunnelEnter.s : 1);
+    sceneEl.style.transform = "scale3d(" + es + ", " + es + ", " + es + ") rotateY(" + ptr.x * 7 + "deg) rotateX(" + (-ptr.y * 5) + "deg)";
     const fadeStart = DEPTH * 0.72, fadeSpan = DEPTH * 0.28;
     for (let i = 0; i < tileEls.length; i++) {
       let z = tileZ[i] - delta; if (z < NEAR) z += DEPTH; tileZ[i] = z;
@@ -824,13 +825,18 @@ motionTl
   }, { threshold: 0 }).observe(document.getElementById("tunnel"));
   document.addEventListener("visibilitychange", function () { if (document.hidden) stop(); else if (visible) start(); });
 
-  /* entrance: the viewport is FIXED and zooms in from scale 0 dead
-     center over the shattering grid (it never rides up); once the
-     tunnel stretch is scrolled through, it slides away with the flow */
-  gsap.fromTo("#tunnelViewport",
-    { scale: 0, autoAlpha: 0, transformOrigin: "50% 50%" },
-    { scale: 1, autoAlpha: 1, ease: "none", immediateRender: true,
+  /* entrance: zoom happens INSIDE the 3D world (scene scale composed
+     into the loop transform) — scaling the perspective container itself
+     re-rasterizes the whole tree per step and flickers. The viewport
+     only fades. */
+  const tunnelEnter = { s: 0 };
+  window.__tunnelEnter = tunnelEnter;
+  gsap.fromTo(tunnelEnter, { s: 0 },
+    { s: 1, ease: "none", immediateRender: true,
       scrollTrigger: { trigger: "#tunnel", start: "top bottom+=70%", end: "top top", scrub: 0.5 } });
+  gsap.fromTo("#tunnelViewport", { autoAlpha: 0 },
+    { autoAlpha: 1, ease: "none", immediateRender: true,
+      scrollTrigger: { trigger: "#tunnel", start: "top bottom+=70%", end: "top bottom-=10%", scrub: 0.5 } });
   gsap.fromTo("#tunnelViewport",
     { yPercent: 0 },
     { yPercent: -100, ease: "none", immediateRender: false,

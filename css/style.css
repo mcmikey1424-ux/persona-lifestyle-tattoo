@@ -316,7 +316,7 @@ body.body--green { background-color: var(--green); }
      riding up with the page */
   position: fixed; inset: 0; overflow: hidden;
   z-index: 40;
-  will-change: transform;
+  will-change: opacity;
   background: #000000;
   perspective: 1800px;
   perspective-origin: 50% 50%;
