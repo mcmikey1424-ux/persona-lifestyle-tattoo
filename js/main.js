@@ -196,11 +196,13 @@ gsap.timeline({
   /* explicit from-value: with invalidateOnRefresh, a refresh mid-intro
      (orbit still hidden) would otherwise capture opacity 0 as the start
      and pin the orbit invisible */
-  /* black-hole exit: portrait + ring get sucked down to a point */
+  /* black-hole exit: pure compositor zoom (no blur/rotation — those
+     forced repaints every frame and made the shrink judder) */
   .fromTo("#orbit",
-    { opacity: 1, scale: 1, rotation: 0, filter: "blur(0px)" },
-    { opacity: 0, scale: 0.02, rotation: -14, filter: "blur(5px)",
-      transformOrigin: "50% 58%", ease: "power1.inOut", duration: 0.42, immediateRender: false },
+    { opacity: 1, scale: 1 },
+    { opacity: 0, scale: 0.02,
+      transformOrigin: "50% 58%", ease: "power1.inOut", duration: 0.42,
+      force3D: true, immediateRender: false },
     0);
 
 /* ---------- Typography orbit (reference: tender-researchers framer) ----
