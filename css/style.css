@@ -213,7 +213,9 @@ body.body--green { background-color: var(--green); }
 .orbit {
   /* exact reference values: perspective 1000, tilt -9/5/-26, R=330px */
   --orbR: 330px; /* fixed, exactly like the reference */
-  position: absolute; inset: 0;
+  /* FIXED like the wordmark: page scroll can never move it — the exit
+     is a pure zoom in place */
+  position: fixed; inset: 0;
   perspective: 1000px;
   pointer-events: none;
   z-index: 50; /* portrait + ring ride OVER the giant wordmark */
