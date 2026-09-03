@@ -419,7 +419,16 @@ if (orbitImgA && !reduceMotion) {
     });
   }, 5000);
   applyPortraitBox(0);                       /* first paint matches the rest */
-  PORTRAIT_NARROW.addEventListener("change", () => applyPortraitBox(pIdx));
+  /* Recompute on any viewport change. The narrow factor is baked into the
+     INLINE height, so crossing 900px must rewrite it — a stale inline value
+     would strand the portrait at the wrong size. Uses resize, not the
+     matchMedia "change" event: the latter does not fire under viewport
+     emulation, and resize is how the rest of this file recomputes. */
+  let portraitResizeTimer = null;
+  window.addEventListener("resize", () => {
+    clearTimeout(portraitResizeTimer);
+    portraitResizeTimer = setTimeout(() => applyPortraitBox(pIdx), 200);
+  });
 }
 
 /* HARD GATE: the fixed portrait layer is forcibly hidden the moment
