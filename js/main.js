@@ -328,7 +328,10 @@ if (orbitRing) {
      rotX -9, rotZ -20 - unchanged) are seeded into GSAP so the cursor
      offsets compose with them. */
   const orbitTiltEl = document.querySelector(".orbit__tilt");
-  gsap.set(orbitTiltEl, { y: 42, rotationX: -9, rotationZ: -20 });
+  /* ring rides a little lower than the portrait centre so it circles the
+     chest rather than cutting across the face */
+  const RING_Y = 35;
+  gsap.set(orbitTiltEl, { y: RING_Y, rotationX: -9, rotationZ: -20 });
   const orbitPtr = { x: 0, y: 0 }, orbitPtrSm = { x: 0, y: 0 };
   window.addEventListener("mousemove", (e) => {
     orbitPtr.x = (e.clientX / window.innerWidth) - 0.5;
@@ -354,16 +357,38 @@ const PORTRAIT_CDN = "https://cdn.jsdelivr.net/gh/mcmikey1424-ux/persona-lifesty
 /* per-portrait height (vh): equalizes face scale — each photo was shot
    at a different distance, so a uniform height gave mismatched "FOV" */
 const PORTRAIT_LIST = [
-  ["alfrey-cut.png", 95.5, "ALFREY", "@ALFREYTATTOO"],
-  ["friend-2.png", 95.5, "EMELYN", "@LETTERBEFORE.N"],
-  ["friend-3.png", 95.5, "BREANNA", "@BREANNX_"],
-  ["friend-4.png", 95.5, "JARED", "@PRETTY5TRANGE"],
-  ["friend-5.png", 95.5, "BERNICE", "@BERTATTOOIST"],
-  ["friend-6.png", 95.5, "JAE", "@CRYINGBAPHOMET"],
+  ["alfrey-cut.png", 95.5, "ALFREY", "@ALFREYTATTOO", 0],
+  ["friend-2.png", 88.6, "EMELYN", "@LETTERBEFORE.N", -14],
+  ["friend-3.png", 89.6, "BREANNA", "@BREANNX_", 0],
+  ["friend-4.png", 98.5, "JARED", "@PRETTY5TRANGE", 9.4],
+  ["friend-5.png", 87, "BERNICE", "@BERTATTOOIST", 6.4],
+  ["friend-6.png", 88.5, "JAE", "@CRYINGBAPHOMET", 5],
 ];
 const PORTRAITS = PORTRAIT_LIST.map(([f]) => PORTRAIT_CDN + f);
 const PORTRAIT_VH = PORTRAIT_LIST.map(([, vh]) => vh);
+/* Horizontal nudge as a % of each cutout's OWN width, so it holds at any
+   size or viewport. The subjects are not centred inside their frames —
+   Emelyn's head sits 14% right of her image centre, Jared's 9.4% left —
+   so centring the BOX leaves the person visibly off-centre. These values
+   centre the HEAD instead, measured off each alpha silhouette. */
+const PORTRAIT_DX = PORTRAIT_LIST.map(([, , , , dx]) => dx || 0);
 const orbitImgA = document.getElementById("orbitImgA");
+/* Portraits sit dead-centre vertically (CSS owns the centring); JS owns
+   only the SIZE. PORTRAIT_VH holds the per-portrait face-scale equalization
+   — each photo was shot at a different distance — and PORTRAIT_SCALE is the
+   single dial that resizes all six together without disturbing that balance. */
+const PORTRAIT_SCALE = 0.75;
+/* The narrow rule shrinks the base 95.5vh to 73vh. JS writes height inline
+   and inline beats a media query, so the shrink is applied here or the rule
+   is silently lost on the first swap. */
+const PORTRAIT_NARROW = window.matchMedia("(max-width: 900px)");
+const portraitScale = () =>
+  PORTRAIT_SCALE * (PORTRAIT_NARROW.matches ? 73 / 95.5 : 1);
+function applyPortraitBox(i) {
+  if (!orbitImgA) return;
+  orbitImgA.style.height = PORTRAIT_VH[i] * portraitScale() + "vh";
+  orbitImgA.style.setProperty("--dx", PORTRAIT_DX[i] + "%");
+}
 if (orbitImgA && !reduceMotion) {
   PORTRAITS.forEach((src) => { const i = new Image(); i.crossOrigin = "anonymous"; i.src = src; });
   let pIdx = 0;
@@ -372,7 +397,7 @@ if (orbitImgA && !reduceMotion) {
     const layer = document.getElementById("orbit");
     if (layer && layer.style.visibility === "hidden") return;
     pIdx = (pIdx + 1) % PORTRAITS.length;
-    const [, vh, name, handle] = PORTRAIT_LIST[pIdx];
+    const [, , name, handle] = PORTRAIT_LIST[pIdx];
     /* sequential swap: fully out, swap, fully in — no double-exposure.
        The ring element itself is never faded (opacity < 1 would kill
        preserve-3d and flatten the ring); its flat char leaves fade. */
@@ -381,7 +406,7 @@ if (orbitImgA && !reduceMotion) {
       opacity: 0, duration: 0.45, ease: "power1.in",
       onComplete: () => {
         orbitImgA.src = PORTRAITS[pIdx];
-        orbitImgA.style.height = vh + "vh";
+        applyPortraitBox(pIdx);
         buildRing(orbitTextFor(name, handle));
         gsap.set(orbitRing.children, { opacity: 0 });
         const reveal = () => {
@@ -393,6 +418,8 @@ if (orbitImgA && !reduceMotion) {
       },
     });
   }, 5000);
+  applyPortraitBox(0);                       /* first paint matches the rest */
+  PORTRAIT_NARROW.addEventListener("change", () => applyPortraitBox(pIdx));
 }
 
 /* HARD GATE: the fixed portrait layer is forcibly hidden the moment

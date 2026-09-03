@@ -283,8 +283,9 @@ body.body--green { background-color: var(--green); }
 }
 .orbit__img {
   position: absolute; left: 50%; top: 50%;
-  height: 95.5vh; width: auto; /* uniform trimmed cutouts */
-  transform: translate(-50%, -50%) translateZ(0); /* dead-center vertically */
+  height: 71.6vh; width: auto; /* = 95.5 x PORTRAIT_SCALE; JS owns size after load */
+  --drop: 11vh; /* nudge below dead-centre; same for all six so they stay aligned */
+  transform: translate(calc(-50% + var(--dx, 0px)), calc(-50% + var(--drop))) translateZ(0);
   user-select: none;
   /* reference: torso dissolves into the ground before it ends */
   -webkit-mask-image: linear-gradient(to bottom, black 62%, transparent 91%);
@@ -313,7 +314,7 @@ body.body--green { background-color: var(--green); }
 @media (max-width: 900px) {
   .orbit { --orbR: 34vw; }
   .orbit__ch { font-size: calc(34vw * 0.1303); letter-spacing: 0.17em; }
-  .orbit__img { height: 73vh; }
+  .orbit__img { height: 54.7vh; } /* = 73 x PORTRAIT_SCALE */
 }
 
 /* ============ GETLAYERS SYSTEMS ============ */
